@@ -1,0 +1,79 @@
+{
+  "name": "pulse-08",
+  "version": "1.0.0",
+  "description": "Signals Protocol implementation on Rootstock Bitcoin sidechain with The Graph integration",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "contracts",
+    "frontend",
+    "subgraph"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn backend:dev\" \"yarn frontend:dev\"",
+    "build": "yarn backend:build && yarn contracts:compile && yarn frontend:build && yarn subgraph:build",
+    "test": "yarn backend:test && yarn contracts:test && yarn frontend:test && yarn subgraph:test",
+    "lint": "yarn backend:lint && yarn contracts:lint && yarn frontend:lint && yarn subgraph:lint",
+    "clean": "yarn backend:clean && yarn contracts:clean && yarn frontend:clean && yarn subgraph:clean",
+    "install:all": "yarn install && yarn backend:install && yarn contracts:install && yarn frontend:install && yarn subgraph:install",
+    "backend:dev": "cd backend && yarn dev",
+    "backend:build": "cd backend && yarn build",
+    "backend:test": "cd backend && yarn test",
+    "backend:lint": "cd backend && yarn lint",
+    "backend:clean": "cd backend && yarn clean",
+    "backend:install": "cd backend && yarn install",
+    "contracts:compile": "cd contracts && yarn compile",
+    "contracts:test": "cd contracts && yarn test",
+    "contracts:deploy": "cd contracts && yarn deploy",
+    "contracts:deploy:mainnet": "cd contracts && yarn deploy:mainnet",
+    "contracts:lint": "cd contracts && yarn lint",
+    "contracts:clean": "cd contracts && yarn clean",
+    "contracts:install": "cd contracts && yarn install",
+    "frontend:dev": "cd frontend && yarn dev",
+    "frontend:build": "cd frontend && yarn build",
+    "frontend:test": "cd frontend && yarn test",
+    "frontend:lint": "cd frontend && yarn lint",
+    "frontend:clean": "cd frontend && yarn clean",
+    "frontend:install": "cd frontend && yarn install",
+    "subgraph:codegen": "cd subgraph && yarn codegen",
+    "subgraph:build": "cd subgraph && yarn build",
+    "subgraph:deploy": "cd subgraph && yarn deploy",
+    "subgraph:deploy:mainnet": "cd subgraph && yarn deploy:mainnet",
+    "subgraph:test": "cd subgraph && yarn test",
+    "subgraph:lint": "cd subgraph && yarn lint",
+    "subgraph:clean": "cd subgraph && yarn clean",
+    "subgraph:install": "cd subgraph && yarn install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.8.3",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.25.0",
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "keywords": [
+    "rootstock",
+    "bitcoin",
+    "sidechain",
+    "prediction-markets",
+    "clmsr",
+    "the-graph",
+    "defi",
+    "ethereum",
+    "smart-contracts"
+  ],
+  "author": "Pulse-08 Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pulse-08/pulse-08.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pulse-08/pulse-08/issues"
+  },
+  "homepage": "https://github.com/pulse-08/pulse-08#readme"
+}

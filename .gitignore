@@ -1,0 +1,477 @@
+# =============================================================================
+# PULSE-08 PROJECT GITIGNORE
+# =============================================================================
+# Comprehensive gitignore for Rootstock Bitcoin sidechain project with The Graph
+# Covers: Backend (Node.js), Contracts (Hardhat), Frontend (React/Vite), Subgraph
+
+# =============================================================================
+# ROOT LEVEL
+# =============================================================================
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+storybook-static
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# =============================================================================
+# BACKEND (Node.js/Express)
+# =============================================================================
+
+# Build output
+backend/dist/
+backend/build/
+
+# Environment files
+backend/.env
+backend/.env.local
+backend/.env.development.local
+backend/.env.test.local
+backend/.env.production.local
+
+# Logs
+backend/logs/
+backend/*.log
+
+# Database
+backend/database.sqlite
+backend/database.sqlite3
+backend/database.db
+
+# Uploads
+backend/uploads/
+backend/public/uploads/
+
+# Test coverage
+backend/coverage/
+backend/.nyc_output/
+
+# =============================================================================
+# CONTRACTS (Hardhat/Solidity)
+# =============================================================================
+
+# Hardhat files
+contracts/cache/
+contracts/artifacts/
+contracts/typechain/
+contracts/typechain-types/
+
+# Hardhat network files
+contracts/.openzeppelin/
+contracts/deployments/
+contracts/.env
+
+# Coverage reports
+contracts/coverage/
+contracts/coverage.json
+
+# Gas reports
+contracts/gas-report.txt
+
+# Hardhat Ignition default folder for deployments
+contracts/ignitions/deployments/chain-31337/
+
+# Hardhat Ignition default folder for deployments
+contracts/ignitions/deployments/chain-31/
+
+# Hardhat Ignition default folder for deployments
+contracts/ignitions/deployments/chain-30/
+
+# =============================================================================
+# FRONTEND (React/Vite)
+# =============================================================================
+
+# Build output
+frontend/dist/
+frontend/build/
+
+# Environment files
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Vite
+frontend/.vite/
+
+# Dependencies
+frontend/node_modules/
+
+# Logs
+frontend/logs
+frontend/*.log
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/lerna-debug.log*
+
+# Runtime data
+frontend/pids
+frontend/*.pid
+frontend/*.seed
+frontend/*.pid.lock
+
+# Coverage directory used by tools like istanbul
+frontend/coverage/
+frontend/*.lcov
+
+# nyc test coverage
+frontend/.nyc_output
+
+# Dependency directories
+frontend/jspm_packages/
+
+# TypeScript cache
+frontend/*.tsbuildinfo
+
+# Optional npm cache directory
+frontend/.npm
+
+# Optional eslint cache
+frontend/.eslintcache
+
+# Optional stylelint cache
+frontend/.stylelintcache
+
+# Microbundle cache
+frontend/.rpt2_cache/
+frontend/.rts2_cache_cjs/
+frontend/.rts2_cache_es/
+frontend/.rts2_cache_umd/
+
+# Optional REPL history
+frontend/.node_repl_history
+
+# Output of 'npm pack'
+frontend/*.tgz
+
+# Yarn Integrity file
+frontend/.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+frontend/.cache
+frontend/.parcel-cache
+
+# Next.js build output
+frontend/.next
+frontend/out
+
+# Nuxt.js build / generate output
+frontend/.nuxt
+frontend/dist
+
+# Gatsby files
+frontend/.cache/
+frontend/public
+
+# Storybook build outputs
+frontend/.out
+frontend/.storybook-out
+frontend/storybook-static
+
+# =============================================================================
+# SUBGRAPH (The Graph)
+# =============================================================================
+
+# Build output
+subgraph/build/
+subgraph/dist/
+
+# Environment files
+subgraph/.env
+subgraph/.env.local
+subgraph/.env.development.local
+subgraph/.env.test.local
+subgraph/.env.production.local
+
+# Generated files
+subgraph/generated/
+subgraph/schema.ts
+
+# Dependencies
+subgraph/node_modules/
+
+# Logs
+subgraph/logs/
+subgraph/*.log
+
+# =============================================================================
+# DOCKER
+# =============================================================================
+
+# Docker volumes
+postgres_data/
+redis_data/
+prometheus_data/
+grafana_data/
+
+# Docker compose override files
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# =============================================================================
+# MONITORING & LOGS
+# =============================================================================
+
+# Prometheus data
+monitoring/prometheus/data/
+
+# Grafana data
+monitoring/grafana/data/
+
+# Log files
+*.log
+logs/
+
+# =============================================================================
+# SECURITY & SECRETS
+# =============================================================================
+
+# Private keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Certificates
+*.crt
+*.cer
+*.der
+
+# Keystore files
+*.jks
+*.keystore
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# =============================================================================
+# TESTING
+# =============================================================================
+
+# Test results
+test-results/
+test-results.xml
+coverage/
+.nyc_output/
+
+# Jest
+jest-cache/
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+
+# Generated documentation
+docs/build/
+docs/dist/
+
+# =============================================================================
+# IDE & EDITORS
+# =============================================================================
+
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# OPERATING SYSTEM
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# PROJECT SPECIFIC
+# =============================================================================
+
+# Pulse-08 specific files
+pulse-08.log
+pulse-08-*.log
+
+# Rootstock specific
+rootstock-*.log
+rbtc-*.log
+
+# The Graph specific
+subgraph-*.log
+graph-*.log
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Temporary files
+*.tmp
+*.temp
+
+# =============================================================================
+# END OF GITIGNORE
+# =============================================================================
