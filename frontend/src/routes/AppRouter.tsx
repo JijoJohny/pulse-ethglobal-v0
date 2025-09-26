@@ -7,6 +7,7 @@ import Markets from '../pages/Markets';
 import Positions from '../pages/Positions';
 import Analytics from '../pages/Analytics';
 import Profile from '../pages/Profile';
+import WalletTestPage from '../pages/WalletTest';
 import NotFound from '../pages/NotFound';
 
 // Layout
@@ -22,6 +23,7 @@ export function AppRouter() {
         <Route path="/positions" element={<Positions />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/wallet-test" element={<WalletTestPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Layout>

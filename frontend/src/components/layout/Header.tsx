@@ -24,6 +24,7 @@ export function Header() {
     { name: 'Markets', href: '/markets', icon: BarChart3 },
     { name: 'Positions', href: '/positions', icon: User },
     { name: 'Analytics', href: '/analytics', icon: TrendingUp },
+    { name: 'Wallet Test', href: '/wallet-test', icon: Wallet },
   ];
 
   const isActive = (path: string) => {
