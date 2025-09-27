@@ -56,6 +56,11 @@ CREATE TABLE IF NOT EXISTS positions (
     outcome VARCHAR(10) DEFAULT 'OPEN' CHECK (outcome IN ('OPEN', 'WIN', 'LOSS')),
     is_claimed BOOLEAN DEFAULT false,
     is_active BOOLEAN DEFAULT true,
+    -- Additional fields for UI display
+    date_label VARCHAR(50), -- Formatted date for display (e.g., "Dec 25, 2024")
+    avg_price_cents DECIMAL(10, 2), -- Average price in cents for display
+    potential_win_usd DECIMAL(20, 2), -- Potential win amount in USD
+    potential_loss_usd DECIMAL(20, 2), -- Potential loss amount in USD (TO LOSE column)
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     closed_at TIMESTAMPTZ,
@@ -66,6 +71,9 @@ CREATE TABLE IF NOT EXISTS positions (
     CONSTRAINT valid_tick_range CHECK (lower_tick < upper_tick),
     CONSTRAINT valid_quantity CHECK (quantity::DECIMAL > 0),
     CONSTRAINT valid_cost_basis CHECK (cost_basis::DECIMAL >= 0),
+    CONSTRAINT valid_avg_price CHECK (avg_price_cents IS NULL OR avg_price_cents > 0),
+    CONSTRAINT valid_potential_win CHECK (potential_win_usd IS NULL OR potential_win_usd >= 0),
+    CONSTRAINT valid_potential_loss CHECK (potential_loss_usd IS NULL OR potential_loss_usd >= 0),
     CONSTRAINT valid_claim_state CHECK (
         (is_claimed = false) OR 
         (is_claimed = true AND claimed_at IS NOT NULL)
@@ -256,6 +264,40 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 
 -- =============================================================================
+-- PREDICTION ANALYTICS TABLE
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS prediction_analytics (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_address VARCHAR(42) NOT NULL,
+    market_id VARCHAR(255) NOT NULL,
+    position_id VARCHAR(255) NOT NULL,
+    -- Price range data
+    price_min DECIMAL(10, 2) NOT NULL,
+    price_max DECIMAL(10, 2) NOT NULL,
+    avg_price_cents DECIMAL(10, 2) NOT NULL,
+    -- Betting data
+    bet_amount_usd DECIMAL(20, 2) NOT NULL,
+    potential_win_usd DECIMAL(20, 2) NOT NULL,
+    potential_loss_usd DECIMAL(20, 2) NOT NULL,
+    -- Status and timing
+    status VARCHAR(10) DEFAULT 'live' CHECK (status IN ('live', 'ended')),
+    date_label VARCHAR(50) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    
+    CONSTRAINT valid_user_address CHECK (user_address ~ '^0x[a-fA-F0-9]{40}$'),
+    CONSTRAINT valid_market_id CHECK (market_id != ''),
+    CONSTRAINT valid_position_id CHECK (position_id != ''),
+    CONSTRAINT valid_price_range CHECK (price_min < price_max),
+    CONSTRAINT valid_avg_price CHECK (avg_price_cents > 0),
+    CONSTRAINT valid_bet_amount CHECK (bet_amount_usd > 0),
+    CONSTRAINT valid_potential_win CHECK (potential_win_usd >= 0),
+    CONSTRAINT valid_potential_loss CHECK (potential_loss_usd >= 0),
+    CONSTRAINT valid_date_label CHECK (length(date_label) > 0)
+);
+
+-- =============================================================================
 -- SYSTEM CONFIG TABLE
 -- =============================================================================
 
@@ -292,6 +334,11 @@ CREATE INDEX IF NOT EXISTS idx_positions_is_active ON positions(is_active);
 CREATE INDEX IF NOT EXISTS idx_positions_is_claimed ON positions(is_claimed);
 CREATE INDEX IF NOT EXISTS idx_positions_created_at ON positions(created_at);
 CREATE INDEX IF NOT EXISTS idx_positions_user_market ON positions(user_address, market_id);
+-- New indexes for UI fields
+CREATE INDEX IF NOT EXISTS idx_positions_date_label ON positions(date_label);
+CREATE INDEX IF NOT EXISTS idx_positions_avg_price_cents ON positions(avg_price_cents);
+CREATE INDEX IF NOT EXISTS idx_positions_potential_win ON positions(potential_win_usd);
+CREATE INDEX IF NOT EXISTS idx_positions_potential_loss ON positions(potential_loss_usd);
 
 -- Users indexes
 CREATE INDEX IF NOT EXISTS idx_users_address ON users(address);
@@ -340,6 +387,15 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
 -- System config indexes
 CREATE INDEX IF NOT EXISTS idx_system_config_key ON system_config(key);
 
+-- Prediction analytics indexes
+CREATE INDEX IF NOT EXISTS idx_prediction_analytics_user_address ON prediction_analytics(user_address);
+CREATE INDEX IF NOT EXISTS idx_prediction_analytics_market_id ON prediction_analytics(market_id);
+CREATE INDEX IF NOT EXISTS idx_prediction_analytics_position_id ON prediction_analytics(position_id);
+CREATE INDEX IF NOT EXISTS idx_prediction_analytics_status ON prediction_analytics(status);
+CREATE INDEX IF NOT EXISTS idx_prediction_analytics_date_label ON prediction_analytics(date_label);
+CREATE INDEX IF NOT EXISTS idx_prediction_analytics_created_at ON prediction_analytics(created_at);
+CREATE INDEX IF NOT EXISTS idx_prediction_analytics_user_market ON prediction_analytics(user_address, market_id);
+
 -- =============================================================================
 -- TRIGGERS
 -- =============================================================================
@@ -360,6 +416,7 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECU
 CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_user_stats_updated_at BEFORE UPDATE ON user_stats FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_market_analytics_updated_at BEFORE UPDATE ON market_analytics FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_prediction_analytics_updated_at BEFORE UPDATE ON prediction_analytics FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_system_config_updated_at BEFORE UPDATE ON system_config FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- =============================================================================
@@ -373,6 +430,7 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE market_analytics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE prediction_analytics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE trades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
@@ -385,6 +443,7 @@ CREATE POLICY "Public read access to users" ON users FOR SELECT USING (true);
 CREATE POLICY "Public read access to user_profiles" ON user_profiles FOR SELECT USING (true);
 CREATE POLICY "Public read access to user_stats" ON user_stats FOR SELECT USING (true);
 CREATE POLICY "Public read access to market_analytics" ON market_analytics FOR SELECT USING (true);
+CREATE POLICY "Public read access to prediction_analytics" ON prediction_analytics FOR SELECT USING (true);
 CREATE POLICY "Public read access to trades" ON trades FOR SELECT USING (true);
 
 -- Create policies for authenticated users
@@ -494,6 +553,37 @@ BEGIN
         updated_at = NOW();
 END;
 $$ LANGUAGE plpgsql;
+
+-- Function to populate UI fields for positions
+CREATE OR REPLACE FUNCTION populate_position_ui_fields()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Calculate average price in cents
+    NEW.avg_price_cents := (NEW.lower_tick + NEW.upper_tick) / 2.0;
+    
+    -- Format date label for display
+    NEW.date_label := TO_CHAR(NEW.created_at, 'Mon DD, YYYY');
+    
+    -- Calculate potential win/loss (simplified calculation)
+    -- In a real implementation, this would use the CLMSR formula
+    DECLARE
+        bet_amount DECIMAL := NEW.cost_basis::DECIMAL;
+        avg_price DECIMAL := NEW.avg_price_cents;
+        odds DECIMAL := GREATEST(0.5, 100.0 / GREATEST(1, avg_price));
+    BEGIN
+        NEW.potential_win_usd := bet_amount * odds;
+        NEW.potential_loss_usd := bet_amount;
+    END;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to populate UI fields when position is created
+CREATE TRIGGER populate_position_ui_fields_trigger
+    BEFORE INSERT ON positions
+    FOR EACH ROW
+    EXECUTE FUNCTION populate_position_ui_fields();
 
 -- =============================================================================
 -- COMPLETION
