@@ -171,7 +171,7 @@ app.use('*', (req, res) => {
 // =============================================================================
 // SERVER STARTUP
 // =============================================================================
-const PORT = process.env.BACKEND_PORT || 3001;
+const PORT = parseInt(process.env.BACKEND_PORT || '3001', 10);
 const HOST = process.env.BACKEND_HOST || 'localhost';
 
 server.listen(PORT, HOST, () => {

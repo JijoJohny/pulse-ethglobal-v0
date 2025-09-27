@@ -503,4 +503,5 @@ $$ LANGUAGE plpgsql;
 INSERT INTO audit_logs (action, resource_type, resource_id) 
 VALUES ('MIGRATION_COMPLETED', 'SCHEMA', '001_initial_schema');
 
-COMMENT ON SCHEMA public IS 'Pulse-08 Signals Protocol Database Schema - Initial Setup';
+COMMENT ON SCHEMA public IS 'Pulse-08  Protocol Database Schema - Initial Setup';
+

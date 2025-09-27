@@ -522,3 +522,4 @@ export const supabase = SupabaseService.getInstance();
 // Export convenience methods
 export const getSupabaseClient = () => supabase.getClient();
 export const getSupabaseServiceClient = () => supabase.getServiceClient();
+

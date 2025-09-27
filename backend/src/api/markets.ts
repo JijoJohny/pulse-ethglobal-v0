@@ -24,7 +24,7 @@ router.get('/', async (req: Request, res: Response) => {
     if (validation.error) {
       return res.status(400).json({
         error: 'Validation Error',
-        message: validation.error.details[0].message
+        message: validation.error.details[0]?.message || 'Invalid query parameters'
       });
     }
 
@@ -38,7 +38,7 @@ router.get('/', async (req: Request, res: Response) => {
       network: network as string
     });
 
-    res.json({
+    return res.json({
       success: true,
       data: markets,
       pagination: {
@@ -50,7 +50,7 @@ router.get('/', async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching markets:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Internal Server Error',
       message: 'Failed to fetch markets'
     });
@@ -64,6 +64,13 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Market ID is required'
+      });
+    }
     
     // Validate market ID
     const validation = validateMarketId(id);
@@ -89,7 +96,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     // Get additional market data from Rootstock
     const marketData = await rootstockService.getMarketData(id);
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         ...market,
@@ -99,7 +106,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching market:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Internal Server Error',
       message: 'Failed to fetch market'
     });
@@ -114,6 +121,13 @@ router.get('/:id/positions', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { page = 1, limit = 20, user } = req.query;
+    
+    if (!id) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Market ID is required'
+      });
+    }
     
     // Validate market ID
     const validation = validateMarketId(id);
@@ -133,7 +147,7 @@ router.get('/:id/positions', async (req: Request, res: Response) => {
       user: user as string
     });
 
-    res.json({
+    return res.json({
       success: true,
       data: positions,
       pagination: {
@@ -145,7 +159,7 @@ router.get('/:id/positions', async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching market positions:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Internal Server Error',
       message: 'Failed to fetch market positions'
     });
@@ -160,6 +174,13 @@ router.get('/:id/analytics', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { timeframe = '24h' } = req.query;
+    
+    if (!id) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Market ID is required'
+      });
+    }
     
     // Validate market ID
     const validation = validateMarketId(id);
@@ -178,7 +199,7 @@ router.get('/:id/analytics', async (req: Request, res: Response) => {
     // Get additional analytics from Rootstock
     const marketAnalytics = await rootstockService.getMarketAnalytics(id);
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         ...analytics,
@@ -188,7 +209,7 @@ router.get('/:id/analytics', async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching market analytics:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Internal Server Error',
       message: 'Failed to fetch market analytics'
     });
@@ -203,6 +224,13 @@ router.post('/:id/settle', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { settlementTick, settlementValue } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Market ID is required'
+      });
+    }
     
     // Validate market ID
     const validation = validateMarketId(id);
@@ -229,7 +257,7 @@ router.post('/:id/settle', async (req: Request, res: Response) => {
       settlementValue
     });
 
-    res.json({
+    return res.json({
       success: true,
       data: result,
       message: 'Market settled successfully',
@@ -237,7 +265,7 @@ router.post('/:id/settle', async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error settling market:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Internal Server Error',
       message: 'Failed to settle market'
     });

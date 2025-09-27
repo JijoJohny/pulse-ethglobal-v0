@@ -73,7 +73,7 @@ export class TheGraphService {
         where: this.buildMarketFilter(options)
       };
 
-      const response = await this.client.request(query, variables);
+      const response = await this.client.request(query, variables) as any;
       return response.markets || [];
     } catch (error) {
       logger.error('Error fetching markets from The Graph:', error);
@@ -133,7 +133,7 @@ export class TheGraphService {
         }
       `;
 
-      const response = await this.client.request(query, { id: marketId });
+      const response = await this.client.request(query, { id: marketId }) as any;
       return response.market;
     } catch (error) {
       logger.error('Error fetching market from The Graph:', error);
@@ -193,7 +193,7 @@ export class TheGraphService {
         where: this.buildPositionFilter(options)
       };
 
-      const response = await this.client.request(query, variables);
+      const response = await this.client.request(query, variables) as any;
       return response.positions || [];
     } catch (error) {
       logger.error('Error fetching market positions from The Graph:', error);
@@ -234,7 +234,7 @@ export class TheGraphService {
         }
       `;
 
-      const response = await this.client.request(query, { marketId, timeframe });
+      const response = await this.client.request(query, { marketId, timeframe }) as any;
       const market = response.market;
 
       if (!market) {
@@ -306,7 +306,7 @@ export class TheGraphService {
         where: this.buildUserPositionFilter(options)
       };
 
-      const response = await this.client.request(query, variables);
+      const response = await this.client.request(query, variables) as any;
       return response.positions || [];
     } catch (error) {
       logger.error('Error fetching user positions from The Graph:', error);
@@ -352,7 +352,7 @@ export class TheGraphService {
         }
       `;
 
-      const response = await this.client.request(query, { user: userAddress });
+      const response = await this.client.request(query, { user: userAddress }) as any;
       return response.user;
     } catch (error) {
       logger.error('Error fetching user stats from The Graph:', error);
