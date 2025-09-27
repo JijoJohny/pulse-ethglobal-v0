@@ -120,39 +120,43 @@ export default function PredictionInput({
         <hr className="border-neutral-200" />
 
         {/* Amount Input */}
-        <div className="my-5">
-          <div className="flex justify-between items-center mb-2">
-            <p className="text-neutral-500 font-medium">Amount</p>
-            <p className="text-sm text-neutral-400">
-              Balance: {formatBalance(balance)} ETH
-            </p>
+        <div className="py-5">
+          <div className="flex justify-between items-start gap-4">
+            <div>
+              <span className="text-neutral-500 font-medium">Amount</span>
+              <p className="text-neutral-500 text-xs mt-1">Your confidence 🙌</p>
+            </div>
+            <div>
+              <div className="inline-flex items-center text-xl font-bold">
+                <input
+                  value={cost}
+                  onChange={(e) => setCost(e.target.value)}
+                  className="outline-none text-right"
+                  placeholder="$0"
+                />
+                <p className="ml-1">USDC</p>
+              </div>
+
+              <p className="text-neutral-500 text-xs text-right">
+                Balance: {formatBalance(balance)}
+              </p>
+            </div>
           </div>
-          <div className="relative">
-            <input
-              type="number"
-              value={cost}
-              onChange={(e) => setCost(e.target.value)}
-              placeholder="0.00"
-              className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-medium"
-              min="0"
-              step="0.01"
-            />
-            <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-neutral-500 font-medium">
-              ETH
-            </span>
-          </div>
-          
+
           {/* Quick Amount Buttons */}
-          <div className="flex gap-2 mt-3">
-            {[0.01, 0.1, 0.5, 1].map((amount) => (
-              <button
-                key={amount}
-                onClick={() => setCost(amount.toString())}
-                className="chip hover:bg-neutral-100 transition-colors"
-              >
-                {amount} ETH
-              </button>
-            ))}
+          <div className="flex justify-end gap-2 mt-4">
+            <button onClick={() => setCost((parseFloat(cost || '0') + 1).toString())} className="chip">
+              +$1
+            </button>
+            <button onClick={() => setCost((parseFloat(cost || '0') + 3).toString())} className="chip">
+              +$3
+            </button>
+            <button onClick={() => setCost((parseFloat(cost || '0') + 5).toString())} className="chip">
+              +$5
+            </button>
+            <button onClick={() => setCost(balance.toString())} className="chip">
+              Max
+            </button>
           </div>
         </div>
 
@@ -160,13 +164,13 @@ export default function PredictionInput({
 
         {/* To Win */}
         <div className="flex justify-between my-5">
-          <p className="text-neutral-500 font-medium">to win</p>
+          <p className="text-neutral-500 font-medium">To Win</p>
           <div className="text-right">
-            <p className="text-neutral-900 text-xl font-bold">
-              {isTicketLoading ? '...' : formatBN(shares)} shares
+            <p className="text-success text-2xl font-bold">
+              ${(parseFloat(cost || '0') * 158.75).toFixed(2)}
             </p>
             <p className="text-sm text-neutral-500">
-              ≈ ${(parseFloat(cost || '0') * 2000).toFixed(2)} potential
+              Avg {avgPriceText}
             </p>
           </div>
         </div>
@@ -176,17 +180,17 @@ export default function PredictionInput({
       <button
         onClick={handlePredict}
         className={cn(
-          isLoading || !isConnected ? "btn-secondary" : "btn-primary",
+          !isConnected ? "btn-primary" : "btn-primary",
           "w-full"
         )}
         disabled={isLoading}
       >
         {isLoading ? (
-          'Placing Prediction...'
+          'Placing Bet...'
         ) : !isConnected ? (
-          'Connect Wallet to Predict'
+          'Connect Wallet'
         ) : (
-          'Place Prediction'
+          'Log in to Bet'
         )}
       </button>
     </div>

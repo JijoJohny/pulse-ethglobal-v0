@@ -4,19 +4,7 @@ import { CHART_CONFIG } from './constants';
 import { HeatmapChartProps, BinItem } from './types';
 import { dollarFormatter } from '../../../utils/formatter';
 import { formatBN } from '../../../utils/format-bn';
-
-const colorScale = (value: number, isClosed: boolean = false) => {
-  if (isClosed) {
-    return 'fill-gray-100 stroke-gray-200';
-  }
-  
-  if (value === 0) return 'fill-gray-50 stroke-gray-200';
-  if (value < 0.2) return 'fill-blue-100 stroke-blue-200';
-  if (value < 0.4) return 'fill-blue-200 stroke-blue-300';
-  if (value < 0.6) return 'fill-blue-300 stroke-blue-400';
-  if (value < 0.8) return 'fill-blue-400 stroke-blue-500';
-  return 'fill-blue-500 stroke-blue-600';
-};
+import { colorScale } from './colorScale';
 
 export default function HeatmapChart({
   data,
@@ -173,7 +161,7 @@ export default function HeatmapChart({
               className={`${colorScale(value, d.state === "closed")} ${
                 j === hoveredBin?.j &&
                 i === hoveredBin?.i &&
-                "stroke-orange-500 stroke-2"
+                "stroke-bitcoin stroke-2"
               } cursor-pointer`}
               onMouseEnter={() => {
                 setHoveredBin({

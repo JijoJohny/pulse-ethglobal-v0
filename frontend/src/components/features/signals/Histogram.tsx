@@ -35,42 +35,56 @@ function HistogramRow({
   onMouseDown,
   onMouseEnter,
 }: HistogramRowProps) {
-  const price = priceBins[binIndex];
-  const shares = +formatBN(marketData.values[binIndex]);
-  const percentage = totalShares > 0 ? (shares / totalShares) * 100 : 0;
-  const barWidth = maxShare > 0 ? (shares / maxShare) * 100 : 0;
+  const min = priceBins[binIndex];
+  const max = priceBins[binIndex + 1] || priceBins[binIndex] + 500;
+  const shareValue = +formatBN(marketData.values[binIndex]);
+  const share = totalShares > 0 ? (shareValue / totalShares) * 100 : 0;
 
   return (
     <div
-      className={cn(
-        "flex items-center py-2 px-3 rounded cursor-pointer transition-colors",
-        selected ? "bg-blue-100 border-2 border-blue-500" : "hover:bg-gray-50"
-      )}
+      key={binIndex}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
+      className={cn(
+        "flex h-10 cursor-pointer",
+        selected
+          ? "bg-bitcoin/20"
+          : "group hover:bg-primary-50 hover:bg-opacity-50"
+      )}
     >
-      <div className="flex-1 text-sm font-medium">
-        {dollarFormatter(price)} - {dollarFormatter(price + 500)}
-      </div>
-      <div className="w-48 pl-4 flex items-center">
-        <div className="flex-1 relative">
-          <div className="h-6 bg-gray-200 rounded relative overflow-hidden">
-            <div
-              className="h-full bg-blue-500 transition-all duration-300"
-              style={{ width: `${barWidth}%` }}
-            />
-          </div>
-          <div className="absolute inset-0 flex items-center justify-end pr-2">
-            <span className="text-xs font-medium text-gray-700">
-              {shares > 100
-                ? shares.toFixed(0)
-                : shares > 10
-                ? shares.toFixed(1)
-                : shares.toFixed(2)}{' '}
-              ({percentage.toFixed(1)}%)
-            </span>
-          </div>
+      <div className="flex-1 relative w-full">
+        <div
+          className={cn(
+            "font-medium h-full transition-all duration-300 ease-in-out",
+            selected
+              ? "bg-bitcoin opacity-100"
+              : "bg-primary-200 opacity-50 group-hover:bg-primary-200 group-hover:opacity-100"
+          )}
+          style={{
+            width: `${maxShare > 0 ? (100 * shareValue) / maxShare : 0}%`,
+          }}
+        />
+        <div
+          className={cn(
+            "absolute inset-0 flex items-center pl-4 select-none",
+            selected
+              ? "text-black font-bold"
+              : "text-neutral-400 group-hover:text-neutral-800 group-hover:font-bold"
+          )}
+        >
+          ${min.toLocaleString()} ~ ${max.toLocaleString()}
         </div>
+      </div>
+      <div className="flex items-center w-48 pl-4 select-none">
+        <p
+          className={
+            selected
+              ? "text-black font-bold"
+              : "text-neutral-400 group-hover:text-neutral-800 group-hover:font-bold"
+          }
+        >
+          {share.toFixed(1)}% ({shareValue.toFixed(2)})
+        </p>
       </div>
     </div>
   );

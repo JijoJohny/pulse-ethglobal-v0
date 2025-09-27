@@ -17,10 +17,9 @@ export function Header() {
           <div className="flex items-center">
             <Link
               to="/"
-              className="text-xl flex items-center gap-1.5 font-bold"
-              style={{ color: "var(--color-primary)" }}
+              className="text-xl flex items-center gap-1.5 font-bold text-primary"
             >
-              <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
                 <span className="text-white text-sm font-bold">S</span>
               </div>
               Signals

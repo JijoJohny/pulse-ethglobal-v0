@@ -6,11 +6,6 @@ export const PREDICTION_CONSTANTS = {
 };
 
 export const CHART_CONFIG = {
-  height: 400,
-  margin: {
-    top: 20,
-    right: 20,
-    bottom: 40,
-    left: 60,
-  },
+  height: 600,
+  margin: { top: 0, right: 20, bottom: 40, left: 66 },
 };
