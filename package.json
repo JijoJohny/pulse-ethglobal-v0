@@ -70,10 +70,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pulse-08/pulse-08.git"
+    "url": "git+https://github.com/pulse-08/pulse-08.git"
   },
   "bugs": {
     "url": "https://github.com/pulse-08/pulse-08/issues"
   },
-  "homepage": "https://github.com/pulse-08/pulse-08#readme"
+  "homepage": "https://github.com/pulse-08/pulse-08#readme",
+  "main": "index.js"
 }

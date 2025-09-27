@@ -49,13 +49,21 @@ export function RootstockWalletProvider({ children }: RootstockWalletProviderPro
 
   // Check if MetaMask is installed
   const isMetaMaskInstalled = () => {
-    return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
+    return typeof window !== 'undefined' && 
+           typeof window.ethereum !== 'undefined' && 
+           window.ethereum !== null;
   };
 
-  // Safe ethereum access
+  // Safe ethereum access with error handling
   const getEthereum = () => {
-    if (typeof window !== 'undefined' && window.ethereum) {
-      return window.ethereum;
+    try {
+      if (typeof window !== 'undefined' && 
+          window.ethereum && 
+          typeof window.ethereum === 'object') {
+        return window.ethereum;
+      }
+    } catch (error) {
+      console.warn('Error accessing window.ethereum:', error);
     }
     return null;
   };
@@ -197,7 +205,10 @@ export function RootstockWalletProvider({ children }: RootstockWalletProviderPro
       // If the network doesn't exist, add it
       if (error.code === 4902) {
         try {
-          await (window as any).ethereum.request({
+          const ethereum = getEthereum();
+          if (!ethereum) throw new Error('MetaMask not available');
+          
+          await ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [
               {
@@ -340,6 +351,14 @@ declare global {
       request: (args: { method: string; params?: any[] }) => Promise<any>;
       on: (event: string, callback: (...args: any[]) => void) => void;
       removeListener: (event: string, callback: (...args: any[]) => void) => void;
+      removeAllListeners?: (event?: string) => void;
+      isMetaMask?: boolean;
+      selectedAddress?: string;
+      networkVersion?: string;
     };
   }
 }
+
+// Environment check to prevent issues in testing/SSR
+export const isClient = typeof window !== 'undefined';
+export const hasEthereum = isClient && !!window.ethereum;
