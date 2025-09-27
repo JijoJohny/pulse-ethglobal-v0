@@ -1,11 +1,11 @@
-import { RootstockWalletProvider } from './web3/provider';
+import { MetamaskWalletProvider } from './web3/MetamaskWalletProvider';
 import { AppRouter } from './routes/AppRouter';
 
 function App() {
   return (
-    <RootstockWalletProvider>
+    <MetamaskWalletProvider>
       <AppRouter />
-    </RootstockWalletProvider>
+    </MetamaskWalletProvider>
   );
 }
 

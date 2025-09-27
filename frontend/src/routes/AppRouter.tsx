@@ -9,6 +9,7 @@ import Analytics from '../pages/Analytics';
 import Profile from '../pages/Profile';
 import WalletTestPage from '../pages/WalletTest';
 import UIDemo from '../pages/UIDemo';
+import History from '../pages/History';
 import NotFound from '../pages/NotFound';
 
 // Layout Components
@@ -30,6 +31,7 @@ export function AppRouter() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/wallet-test" element={<WalletTestPage />} />
           <Route path="/ui-demo" element={<UIDemo />} />
+          <Route path="/history" element={<History />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
