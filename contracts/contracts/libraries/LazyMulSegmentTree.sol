@@ -29,10 +29,10 @@ library LazyMulSegmentTree {
 
     /**
      * @notice Initialize a segment tree with given capacity
+     * @param tree The segment tree to initialize
      * @param capacity The maximum number of elements
-     * @return tree The initialized segment tree
      */
-    function initialize(uint256 capacity) internal pure returns (SegmentTree memory tree) {
+    function initialize(SegmentTree storage tree, uint256 capacity) internal {
         if (capacity == 0) revert SegmentTreeInvalidRange();
         
         // Calculate tree size (next power of 2)
@@ -43,15 +43,15 @@ library LazyMulSegmentTree {
         }
         
         // Initialize nodes array (size * 2 for complete binary tree)
-        tree.nodes = new Node[](tree.size * 2);
+        delete tree.nodes;
         
         // Initialize all nodes
-        for (uint256 i = 0; i < tree.nodes.length; i++) {
-            tree.nodes[i] = Node({
+        for (uint256 i = 0; i < tree.size * 2; i++) {
+            tree.nodes.push(Node({
                 value: 0,
                 lazy: 0,
                 hasLazy: false
-            });
+            }));
         }
     }
 
@@ -91,7 +91,7 @@ library LazyMulSegmentTree {
      * @param index The index to query
      * @return The value at the index
      */
-    function query(SegmentTree storage tree, uint256 index) internal view returns (uint256) {
+    function query(SegmentTree storage tree, uint256 index) internal returns (uint256) {
         if (index >= tree.capacity) revert SegmentTreeInvalidIndex();
         
         return _queryRange(tree, 1, 0, tree.size - 1, index, index);
@@ -108,7 +108,7 @@ library LazyMulSegmentTree {
         SegmentTree storage tree,
         uint256 left,
         uint256 right
-    ) internal view returns (uint256) {
+    ) internal returns (uint256) {
         if (left > right || right >= tree.capacity) revert SegmentTreeInvalidRange();
         
         return _queryRange(tree, 1, 0, tree.size - 1, left, right);
@@ -119,7 +119,7 @@ library LazyMulSegmentTree {
      * @param tree The segment tree
      * @return The total sum
      */
-    function getTotalSum(SegmentTree storage tree) internal view returns (uint256) {
+    function getTotalSum(SegmentTree storage tree) internal returns (uint256) {
         if (tree.capacity == 0) revert SegmentTreeEmpty();
         
         return _queryRange(tree, 1, 0, tree.size - 1, 0, tree.capacity - 1);
@@ -177,7 +177,7 @@ library LazyMulSegmentTree {
         uint256 nodeRight,
         uint256 left,
         uint256 right
-    ) internal view returns (uint256) {
+    ) internal returns (uint256) {
         // Apply lazy updates
         _pushLazy(tree, node, nodeLeft, nodeRight);
         
@@ -245,7 +245,7 @@ library LazyMulSegmentTree {
      * @param binIndex The bin index
      * @return The value at the bin
      */
-    function getBinValue(SegmentTree storage tree, uint256 binIndex) internal view returns (uint256) {
+    function getBinValue(SegmentTree storage tree, uint256 binIndex) internal returns (uint256) {
         return query(tree, binIndex);
     }
 

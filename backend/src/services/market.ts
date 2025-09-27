@@ -1,15 +1,18 @@
 import { TheGraphService } from './thegraph';
 import { RootstockService } from './rootstock';
+import { SupabaseService } from './supabaseService';
 import { logger } from '../utils/logger';
 import { MarketData, MarketAnalytics } from '../types/market';
 
 export class MarketService {
   private theGraphService: TheGraphService;
   private rootstockService: RootstockService;
+  private supabaseService: SupabaseService;
 
   constructor() {
     this.theGraphService = new TheGraphService();
     this.rootstockService = new RootstockService();
+    this.supabaseService = new SupabaseService();
   }
 
   // =============================================================================
@@ -59,7 +62,35 @@ export class MarketService {
     try {
       logger.info('Getting markets', { options });
 
-      // Get markets from The Graph
+      // Get markets from Supabase first (primary source)
+      const supabaseResult = await this.supabaseService.getMarkets({
+        page: options.page,
+        limit: options.limit,
+        status: options.status as any
+      });
+
+      if (supabaseResult.success && supabaseResult.data.length > 0) {
+        // Enrich with Rootstock data for each market
+        const enrichedMarkets = await Promise.all(
+          supabaseResult.data.map(async (market: any) => {
+            try {
+              const rootstockData = await this.rootstockService.getMarketData(market.market_id);
+              return {
+                ...market,
+                ...rootstockData,
+                lastUpdated: new Date().toISOString()
+              };
+            } catch (error) {
+              logger.error(`Error enriching market ${market.market_id}:`, error);
+              return market;
+            }
+          })
+        );
+
+        return enrichedMarkets;
+      }
+
+      // Fallback to The Graph if Supabase is empty
       const markets = await this.theGraphService.getMarkets(options);
 
       // Enrich with Rootstock data for each market

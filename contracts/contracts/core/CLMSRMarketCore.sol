@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/ICLMSRMarketCore.sol";
@@ -38,54 +38,7 @@ contract CLMSRMarketCore is ICLMSRMarketCore, Ownable, ReentrancyGuard {
     uint256 private constant MIN_TICK_SPACING = 1;
     uint256 private constant MAX_TICK_SPACING = 10000;
 
-    // Events
-    event MarketCreated(
-        uint256 indexed marketId,
-        uint256 startTimestamp,
-        uint256 endTimestamp,
-        uint256 liquidityParameter,
-        address paymentToken,
-        uint256 lowerTick,
-        uint256 upperTick
-    );
-
-    event PositionOpened(
-        uint256 indexed positionId,
-        address indexed owner,
-        uint256 indexed marketId,
-        uint256 lowerTick,
-        uint256 upperTick,
-        uint256 quantity,
-        uint256 cost
-    );
-
-    event PositionIncreased(
-        uint256 indexed positionId,
-        uint256 quantity,
-        uint256 cost
-    );
-
-    event PositionDecreased(
-        uint256 indexed positionId,
-        uint256 quantity,
-        uint256 proceeds
-    );
-
-    event PositionClosed(
-        uint256 indexed positionId,
-        uint256 proceeds
-    );
-
-    event MarketSettled(
-        uint256 indexed marketId,
-        uint256 settlementValue
-    );
-
-    event Claimed(
-        uint256 indexed positionId,
-        address indexed owner,
-        uint256 amount
-    );
+    // Events are defined in the interface
 
     // Errors
     error InvalidMarketParameters(string reason);
@@ -169,7 +122,7 @@ contract CLMSRMarketCore is ICLMSRMarketCore, Ownable, ReentrancyGuard {
         });
 
         // Initialize segment tree for this market
-        _marketDistributions[marketId] = LazyMulSegmentTree.initialize(binCount);
+        LazyMulSegmentTree.initialize(_marketDistributions[marketId], binCount);
 
         emit MarketCreated(
             marketId,
@@ -424,7 +377,7 @@ contract CLMSRMarketCore is ICLMSRMarketCore, Ownable, ReentrancyGuard {
         uint256 lowerTick,
         uint256 upperTick,
         uint256 quantity
-    ) external view returns (uint256) {
+    ) external returns (uint256) {
         return _calculateOpenCost(marketId, lowerTick, upperTick, quantity);
     }
 
@@ -437,7 +390,7 @@ contract CLMSRMarketCore is ICLMSRMarketCore, Ownable, ReentrancyGuard {
     function calculateIncreaseCost(
         uint256 positionId,
         uint256 quantity
-    ) external view returns (uint256) {
+    ) external returns (uint256) {
         return _calculateIncreaseCost(positionId, quantity);
     }
 
@@ -450,7 +403,7 @@ contract CLMSRMarketCore is ICLMSRMarketCore, Ownable, ReentrancyGuard {
     function calculateDecreaseProceeds(
         uint256 positionId,
         uint256 quantity
-    ) external view returns (uint256) {
+    ) external returns (uint256) {
         return _calculateDecreaseProceeds(positionId, quantity);
     }
 
@@ -459,7 +412,7 @@ contract CLMSRMarketCore is ICLMSRMarketCore, Ownable, ReentrancyGuard {
      * @param positionId The position ID
      * @return The proceeds in payment token units
      */
-    function calculateCloseProceeds(uint256 positionId) external view returns (uint256) {
+    function calculateCloseProceeds(uint256 positionId) external returns (uint256) {
         return _calculateCloseProceeds(positionId);
     }
 
@@ -500,7 +453,7 @@ contract CLMSRMarketCore is ICLMSRMarketCore, Ownable, ReentrancyGuard {
         uint256 lowerTick,
         uint256 upperTick,
         uint256 quantity
-    ) internal view returns (uint256) {
+    ) internal returns (uint256) {
         Market memory market = _markets[marketId];
         LazyMulSegmentTree.SegmentTree storage distribution = _marketDistributions[marketId];
         
@@ -531,7 +484,7 @@ contract CLMSRMarketCore is ICLMSRMarketCore, Ownable, ReentrancyGuard {
     function _calculateIncreaseCost(
         uint256 positionId,
         uint256 quantity
-    ) internal view returns (uint256) {
+    ) internal returns (uint256) {
         Position memory position = _positions[positionId];
         return _calculateOpenCost(position.marketId, position.lowerTick, position.upperTick, quantity);
     }
@@ -542,7 +495,7 @@ contract CLMSRMarketCore is ICLMSRMarketCore, Ownable, ReentrancyGuard {
     function _calculateDecreaseProceeds(
         uint256 positionId,
         uint256 quantity
-    ) internal view returns (uint256) {
+    ) internal returns (uint256) {
         Position memory position = _positions[positionId];
         Market memory market = _markets[position.marketId];
         LazyMulSegmentTree.SegmentTree storage distribution = _marketDistributions[position.marketId];
@@ -573,7 +526,7 @@ contract CLMSRMarketCore is ICLMSRMarketCore, Ownable, ReentrancyGuard {
      */
     function _calculateCloseProceeds(
         uint256 positionId
-    ) internal view returns (uint256) {
+    ) internal returns (uint256) {
         Position memory position = _positions[positionId];
         return _calculateDecreaseProceeds(positionId, position.quantity);
     }

@@ -3,7 +3,6 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "../interfaces/ICLMSRPosition.sol";
 
 /**
@@ -12,10 +11,8 @@ import "../interfaces/ICLMSRPosition.sol";
  * @dev Each position is represented as an NFT with metadata containing market information
  */
 contract CLMSRPosition is ERC721, Ownable, ICLMSRPosition {
-    using Counters for Counters.Counter;
-
     // State variables
-    Counters.Counter private _tokenIdCounter;
+    uint256 private _tokenIdCounter;
     mapping(uint256 => PositionMetadata) private _positionMetadata;
     mapping(uint256 => uint256[]) private _marketPositions;
     mapping(address => uint256[]) private _ownerPositions;
@@ -25,22 +22,7 @@ contract CLMSRPosition is ERC721, Ownable, ICLMSRPosition {
     // Access control
     address private _marketCore;
 
-    // Events
-    event PositionMinted(
-        uint256 indexed tokenId,
-        address indexed owner,
-        uint256 indexed marketId,
-        uint256 lowerTick,
-        uint256 upperTick
-    );
-
-    event PositionBurned(uint256 indexed tokenId);
-
-    event PositionUpdated(
-        uint256 indexed tokenId,
-        uint256 quantity,
-        uint256 costBasis
-    );
+    // Events are defined in the interface
 
     // Errors
     error UnauthorizedCaller();
@@ -85,8 +67,7 @@ contract CLMSRPosition is ERC721, Ownable, ICLMSRPosition {
     ) external returns (uint256 tokenId) {
         if (msg.sender != _marketCore) revert UnauthorizedCaller();
 
-        _tokenIdCounter.increment();
-        tokenId = _tokenIdCounter.current();
+        tokenId = ++_tokenIdCounter;
 
         // Set position metadata
         _positionMetadata[tokenId] = PositionMetadata({
@@ -118,7 +99,7 @@ contract CLMSRPosition is ERC721, Ownable, ICLMSRPosition {
      */
     function burn(uint256 tokenId) external {
         if (msg.sender != _marketCore) revert UnauthorizedCaller();
-        if (!_exists(tokenId)) revert PositionNotFound();
+        if (_ownerOf(tokenId) == address(0)) revert PositionNotFound();
 
         address owner = ownerOf(tokenId);
         PositionMetadata memory metadata = _positionMetadata[tokenId];
@@ -152,7 +133,7 @@ contract CLMSRPosition is ERC721, Ownable, ICLMSRPosition {
         uint256 costBasis
     ) external {
         if (msg.sender != _marketCore) revert UnauthorizedCaller();
-        if (!_exists(tokenId)) revert PositionNotFound();
+        if (_ownerOf(tokenId) == address(0)) revert PositionNotFound();
 
         _positionMetadata[tokenId].quantity = quantity;
         _positionMetadata[tokenId].costBasis = costBasis;
@@ -166,7 +147,7 @@ contract CLMSRPosition is ERC721, Ownable, ICLMSRPosition {
      * @return The position metadata
      */
     function getPositionMetadata(uint256 tokenId) external view returns (PositionMetadata memory) {
-        if (!_exists(tokenId)) revert PositionNotFound();
+        if (_ownerOf(tokenId) == address(0)) revert PositionNotFound();
         return _positionMetadata[tokenId];
     }
 
@@ -219,7 +200,7 @@ contract CLMSRPosition is ERC721, Ownable, ICLMSRPosition {
      * @return The total supply
      */
     function totalSupply() external view returns (uint256) {
-        return _tokenIdCounter.current();
+        return _tokenIdCounter;
     }
 
     /**
@@ -228,7 +209,7 @@ contract CLMSRPosition is ERC721, Ownable, ICLMSRPosition {
      * @return Whether the token exists
      */
     function exists(uint256 tokenId) external view returns (bool) {
-        return _exists(tokenId);
+        return _ownerOf(tokenId) != address(0);
     }
 
     /**
@@ -237,7 +218,7 @@ contract CLMSRPosition is ERC721, Ownable, ICLMSRPosition {
      * @return The token URI
      */
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        if (!_exists(tokenId)) revert PositionNotFound();
+        if (_ownerOf(tokenId) == address(0)) revert PositionNotFound();
 
         PositionMetadata memory metadata = _positionMetadata[tokenId];
         

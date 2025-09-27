@@ -18,6 +18,8 @@ import { RootstockService } from './services/rootstock';
 import { TheGraphService } from './services/thegraph';
 import { MarketService } from './services/market';
 import { PositionService } from './services/position';
+import { SupabaseService } from './services/supabaseService';
+import { supabase } from './config/supabase';
 
 // Import utilities
 import { logger } from './utils/logger';
@@ -60,14 +62,31 @@ app.use(rateLimiter);
 // =============================================================================
 // HEALTH CHECK ENDPOINT
 // =============================================================================
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    version: process.env.npm_package_version || '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
-  });
+app.get('/health', async (req, res) => {
+  try {
+    // Check Supabase connectivity
+    const supabaseHealth = await supabase.healthCheck();
+    
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      version: process.env.npm_package_version || '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+      services: {
+        database: supabaseHealth ? 'healthy' : 'unhealthy',
+        rootstock: process.env.ROOTSTOCK_RPC_URL ? 'configured' : 'not_configured',
+        thegraph: process.env.THE_GRAPH_SUBGRAPH_URL ? 'configured' : 'not_configured'
+      }
+    });
+  } catch (error) {
+    logger.error('Health check failed:', error);
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: 'Service unavailable'
+    });
+  }
 });
 
 // =============================================================================

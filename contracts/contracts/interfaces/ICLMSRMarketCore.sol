@@ -120,19 +120,19 @@ interface ICLMSRMarketCore {
         uint256 lowerTick,
         uint256 upperTick,
         uint256 quantity
-    ) external view returns (uint256 cost);
+    ) external returns (uint256 cost);
 
     function calculateIncreaseCost(
         uint256 positionId,
         uint256 quantity
-    ) external view returns (uint256 cost);
+    ) external returns (uint256 cost);
 
     function calculateDecreaseProceeds(
         uint256 positionId,
         uint256 quantity
-    ) external view returns (uint256 proceeds);
+    ) external returns (uint256 proceeds);
 
-    function calculateCloseProceeds(uint256 positionId) external view returns (uint256 proceeds);
+    function calculateCloseProceeds(uint256 positionId) external returns (uint256 proceeds);
 
     function calculateClaim(uint256 positionId) external view returns (uint256 amount);
 }
