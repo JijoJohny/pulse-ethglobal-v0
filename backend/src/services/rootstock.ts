@@ -293,6 +293,39 @@ export class RootstockService {
     }
   }
 
+  /**
+   * Claim position rewards
+   */
+  async claimPositionRewards(positionId: string): Promise<any> {
+    try {
+      logger.info('Claiming position rewards on Rootstock', { positionId });
+
+      if (!this.wallet) {
+        throw new Error('Wallet not initialized for claiming rewards');
+      }
+
+      const tx = await this.positionContract.claimRewards(positionId);
+      const receipt = await tx.wait();
+      
+      logger.info('Position rewards claimed successfully', {
+        positionId,
+        transactionHash: receipt.hash,
+        gasUsed: receipt.gasUsed.toString()
+      });
+
+      return {
+        success: true,
+        transactionHash: receipt.hash,
+        gasUsed: receipt.gasUsed.toString(),
+        blockNumber: receipt.blockNumber,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      logger.error('Error claiming position rewards on Rootstock:', error);
+      throw new Error('Failed to claim position rewards on Rootstock');
+    }
+  }
+
   // =============================================================================
   // UTILITY METHODS
   // =============================================================================
@@ -338,17 +371,183 @@ export class RootstockService {
    * Get market contract ABI
    */
   private getMarketABI(): any[] {
-    // This would contain the actual ABI for the CLMSRMarketCore contract
-    // For now, returning a placeholder
-    return [];
+    return [
+      // Market creation
+      {
+        "inputs": [
+          {"internalType": "uint256", "name": "startTimestamp", "type": "uint256"},
+          {"internalType": "uint256", "name": "endTimestamp", "type": "uint256"},
+          {"internalType": "uint256", "name": "liquidityParameter", "type": "uint256"},
+          {"internalType": "address", "name": "paymentToken", "type": "address"},
+          {"internalType": "uint256", "name": "lowerTick", "type": "uint256"},
+          {"internalType": "uint256", "name": "upperTick", "type": "uint256"},
+          {"internalType": "uint256", "name": "tickSpacing", "type": "uint256"}
+        ],
+        "name": "createMarket",
+        "outputs": [{"internalType": "uint256", "name": "marketId", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      // Position operations
+      {
+        "inputs": [
+          {"internalType": "uint256", "name": "marketId", "type": "uint256"},
+          {"internalType": "uint256", "name": "lowerTick", "type": "uint256"},
+          {"internalType": "uint256", "name": "upperTick", "type": "uint256"},
+          {"internalType": "uint256", "name": "quantity", "type": "uint256"}
+        ],
+        "name": "openPosition",
+        "outputs": [{"internalType": "uint256", "name": "positionId", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [{"internalType": "uint256", "name": "positionId", "type": "uint256"}],
+        "name": "closePosition",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {"internalType": "uint256", "name": "marketId", "type": "uint256"},
+          {"internalType": "uint256", "name": "settlementValue", "type": "uint256"}
+        ],
+        "name": "settleMarket",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      // View functions
+      {
+        "inputs": [{"internalType": "uint256", "name": "marketId", "type": "uint256"}],
+        "name": "getMarket",
+        "outputs": [
+          {
+            "components": [
+              {"internalType": "uint256", "name": "marketId", "type": "uint256"},
+              {"internalType": "uint256", "name": "startTimestamp", "type": "uint256"},
+              {"internalType": "uint256", "name": "endTimestamp", "type": "uint256"},
+              {"internalType": "uint256", "name": "settlementValue", "type": "uint256"},
+              {"internalType": "bool", "name": "isActive", "type": "bool"},
+              {"internalType": "bool", "name": "isSettled", "type": "bool"},
+              {"internalType": "uint256", "name": "liquidityParameter", "type": "uint256"},
+              {"internalType": "address", "name": "paymentToken", "type": "address"},
+              {"internalType": "uint256", "name": "lowerTick", "type": "uint256"},
+              {"internalType": "uint256", "name": "upperTick", "type": "uint256"},
+              {"internalType": "uint256", "name": "tickSpacing", "type": "uint256"}
+            ],
+            "internalType": "struct ICLMSRMarketCore.Market",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [{"internalType": "uint256", "name": "positionId", "type": "uint256"}],
+        "name": "getPosition",
+        "outputs": [
+          {
+            "components": [
+              {"internalType": "uint256", "name": "positionId", "type": "uint256"},
+              {"internalType": "address", "name": "owner", "type": "address"},
+              {"internalType": "uint256", "name": "marketId", "type": "uint256"},
+              {"internalType": "uint256", "name": "lowerTick", "type": "uint256"},
+              {"internalType": "uint256", "name": "upperTick", "type": "uint256"},
+              {"internalType": "uint256", "name": "quantity", "type": "uint256"},
+              {"internalType": "uint256", "name": "costBasis", "type": "uint256"},
+              {"internalType": "bool", "name": "isActive", "type": "bool"}
+            ],
+            "internalType": "struct ICLMSRMarketCore.Position",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      // Events
+      {
+        "anonymous": false,
+        "inputs": [
+          {"indexed": true, "internalType": "uint256", "name": "marketId", "type": "uint256"},
+          {"indexed": false, "internalType": "uint256", "name": "startTimestamp", "type": "uint256"},
+          {"indexed": false, "internalType": "uint256", "name": "endTimestamp", "type": "uint256"},
+          {"indexed": false, "internalType": "uint256", "name": "liquidityParameter", "type": "uint256"},
+          {"indexed": false, "internalType": "address", "name": "paymentToken", "type": "address"},
+          {"indexed": false, "internalType": "uint256", "name": "lowerTick", "type": "uint256"},
+          {"indexed": false, "internalType": "uint256", "name": "upperTick", "type": "uint256"}
+        ],
+        "name": "MarketCreated",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {"indexed": true, "internalType": "uint256", "name": "positionId", "type": "uint256"},
+          {"indexed": true, "internalType": "address", "name": "owner", "type": "address"},
+          {"indexed": true, "internalType": "uint256", "name": "marketId", "type": "uint256"},
+          {"indexed": false, "internalType": "uint256", "name": "lowerTick", "type": "uint256"},
+          {"indexed": false, "internalType": "uint256", "name": "upperTick", "type": "uint256"},
+          {"indexed": false, "internalType": "uint256", "name": "quantity", "type": "uint256"},
+          {"indexed": false, "internalType": "uint256", "name": "cost", "type": "uint256"}
+        ],
+        "name": "PositionOpened",
+        "type": "event"
+      }
+    ];
   }
 
   /**
    * Get position contract ABI
    */
   private getPositionABI(): any[] {
-    // This would contain the actual ABI for the CLMSRPosition contract
-    // For now, returning a placeholder
-    return [];
+    return [
+      // Position operations
+      {
+        "inputs": [{"internalType": "uint256", "name": "positionId", "type": "uint256"}],
+        "name": "claimRewards",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [{"internalType": "uint256", "name": "positionId", "type": "uint256"}],
+        "name": "getPosition",
+        "outputs": [
+          {
+            "components": [
+              {"internalType": "uint256", "name": "positionId", "type": "uint256"},
+              {"internalType": "address", "name": "owner", "type": "address"},
+              {"internalType": "uint256", "name": "marketId", "type": "uint256"},
+              {"internalType": "uint256", "name": "lowerTick", "type": "uint256"},
+              {"internalType": "uint256", "name": "upperTick", "type": "uint256"},
+              {"internalType": "uint256", "name": "quantity", "type": "uint256"},
+              {"internalType": "uint256", "name": "costBasis", "type": "uint256"},
+              {"internalType": "bool", "name": "isActive", "type": "bool"},
+              {"internalType": "bool", "name": "isClaimed", "type": "bool"}
+            ],
+            "internalType": "struct ICLMSRPosition.Position",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      // Events
+      {
+        "anonymous": false,
+        "inputs": [
+          {"indexed": true, "internalType": "uint256", "name": "positionId", "type": "uint256"},
+          {"indexed": true, "internalType": "address", "name": "owner", "type": "address"},
+          {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"}
+        ],
+        "name": "Claimed",
+        "type": "event"
+      }
+    ];
   }
 }
