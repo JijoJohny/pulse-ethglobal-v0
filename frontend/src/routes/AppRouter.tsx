@@ -8,6 +8,7 @@ import Positions from '../pages/Positions';
 import Analytics from '../pages/Analytics';
 import Profile from '../pages/Profile';
 import WalletTestPage from '../pages/WalletTest';
+import UIDemo from '../pages/UIDemo';
 import NotFound from '../pages/NotFound';
 
 // Layout Components
@@ -16,7 +17,7 @@ import { Footer } from '../components/layout/Footer';
 
 export function AppRouter() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-white">
       <Header />
       <main className="container mx-auto px-4 py-8">
         <Routes>
@@ -28,6 +29,7 @@ export function AppRouter() {
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/wallet-test" element={<WalletTestPage />} />
+          <Route path="/ui-demo" element={<UIDemo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

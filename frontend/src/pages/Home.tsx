@@ -16,10 +16,10 @@ export default function Home() {
         transition={{ duration: 0.5 }}
         className="text-center space-y-4"
       >
-        <h1 className="text-4xl md:text-6xl font-bold gradient-text">
+        <h1 className="text-4xl md:text-6xl font-bold text-gray-900">
           Pulse-08 Signals Protocol
         </h1>
-        <p className="text-xl text-secondary-600 dark:text-secondary-400 max-w-3xl mx-auto">
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
           Decentralized prediction markets on Rootstock Bitcoin sidechain with The Graph integration
         </p>
         <div className="flex flex-wrap justify-center gap-4 mt-8">
