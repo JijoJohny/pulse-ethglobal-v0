@@ -23,7 +23,7 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           d3: ['d3'],
-          ethers: ['ethers', 'web3'],
+          ethers: ['ethers'],
           graphql: ['graphql', 'graphql-request'],
         },
       },
@@ -33,6 +33,9 @@ export default defineConfig({
     global: 'globalThis',
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'd3', 'ethers', 'web3'],
+    include: ['react', 'react-dom', 'react-router-dom', 'd3', 'ethers'],
+  },
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
   },
 });

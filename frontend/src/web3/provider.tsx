@@ -137,7 +137,7 @@ export function RootstockWalletProvider({ children }: RootstockWalletProviderPro
 
       // Check if we're on the correct network
       if (!currentNetwork) {
-        toast.warning('Please switch to Rootstock network');
+        toast.error('Please switch to Rootstock network');
         await switchNetwork(DEFAULT_NETWORK);
         return;
       }
@@ -197,7 +197,7 @@ export function RootstockWalletProvider({ children }: RootstockWalletProviderPro
       // If the network doesn't exist, add it
       if (error.code === 4902) {
         try {
-          await ethereum.request({
+          await (window as any).ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [
               {
@@ -245,12 +245,12 @@ export function RootstockWalletProvider({ children }: RootstockWalletProviderPro
     const handleAccountsChanged = (accounts: string[]) => {
       if (accounts.length === 0) {
         disconnect();
-        toast.info('Wallet disconnected');
+        toast.success('Wallet disconnected');
       } else {
         const newAccount = accounts[0];
         if (newAccount !== account) {
           setAccount(newAccount);
-          toast.info('Account changed');
+          toast.success('Account changed');
         }
       }
     };
@@ -263,10 +263,10 @@ export function RootstockWalletProvider({ children }: RootstockWalletProviderPro
       
       if (newNetwork) {
         setNetwork(newNetwork);
-        toast.info(`Switched to ${newNetwork.name}`);
+        toast.success(`Switched to ${newNetwork.name}`);
       } else {
         setNetwork(null);
-        toast.warning('Please switch to Rootstock network');
+        toast.error('Please switch to Rootstock network');
       }
     };
 
@@ -278,7 +278,7 @@ export function RootstockWalletProvider({ children }: RootstockWalletProviderPro
     const handleDisconnect = () => {
       console.log('MetaMask disconnected');
       disconnect();
-      toast.info('MetaMask disconnected');
+      toast.success('MetaMask disconnected');
     };
 
     const ethereum = getEthereum();

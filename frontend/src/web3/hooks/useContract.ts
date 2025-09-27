@@ -14,7 +14,7 @@ export const ERC20_ABI = [
   'function name() view returns (string)',
 ];
 
-export const CLMSR_MARKET_CORE_ABI = [
+export const MARKET_CORE_ABI = [
   'function createMarket(string memory question, uint256 endTime, uint256[] memory outcomes) returns (uint256)',
   'function openPosition(uint256 marketId, uint256[] memory bins, uint256 amount) returns (bool)',
   'function closePosition(uint256 marketId, uint256[] memory bins, uint256 amount) returns (bool)',
@@ -41,9 +41,9 @@ export function useContract() {
     return getContractInstance(tokenAddress, ERC20_ABI);
   }, [getContractInstance]);
 
-  // Get CLMSR Market Core contract
+  // Get Market Core contract
   const getMarketContract = useCallback((marketAddress: string) => {
-    return getContractInstance(marketAddress, CLMSR_MARKET_CORE_ABI);
+    return getContractInstance(marketAddress, MARKET_CORE_ABI);
   }, [getContractInstance]);
 
   // Get token balance

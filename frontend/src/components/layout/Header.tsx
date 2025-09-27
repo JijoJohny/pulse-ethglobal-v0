@@ -21,6 +21,7 @@ export function Header() {
 
   const navigation = [
     { name: 'Home', href: '/', icon: TrendingUp },
+    { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
     { name: 'Markets', href: '/markets', icon: BarChart3 },
     { name: 'Positions', href: '/positions', icon: User },
     { name: 'Analytics', href: '/analytics', icon: TrendingUp },
@@ -32,30 +33,26 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-secondary-200 dark:border-secondary-700">
+    <header className="sticky top-0 z-50 glass border-b border-white/20 dark:border-black/20">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-primary-800 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-white" />
+          <Link to="/" className="flex items-center space-x-3 hover-scale">
+            <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
+              <TrendingUp className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold gradient-text">Pulse-08</span>
+            <span className="text-2xl font-bold gradient-text">Pulse-08</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-2">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300'
-                      : 'text-secondary-600 hover:text-secondary-900 hover:bg-secondary-100 dark:text-secondary-400 dark:hover:text-secondary-100 dark:hover:bg-secondary-800'
-                  }`}
+                  className={`${isActive(item.href) ? 'nav-link-active' : 'nav-link'} space-x-2`}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{item.name}</span>

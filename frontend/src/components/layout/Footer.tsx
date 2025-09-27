@@ -4,7 +4,7 @@ import {
   TrendingUp, 
   Github, 
   Twitter, 
-  Discord, 
+  MessageCircle as Discord, 
   ExternalLink,
   Heart
 } from 'lucide-react';
@@ -91,7 +91,7 @@ export function Footer() {
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.name}>
-                    {link.external ? (
+                    {(link as any).external ? (
                       <a
                         href={link.href}
                         target="_blank"
