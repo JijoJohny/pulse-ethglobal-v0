@@ -5,7 +5,7 @@
 [![Rootstock](https://img.shields.io/badge/Rootstock-Testnet-orange)](https://rootstock.io/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-> **Minimized CLMSR (Continuous Logarithmic Market Scoring Rule) prediction market contracts ready for deployment on Rootstock testnet.**
+> ** Continuous Logarithmic Market Scoring Rule prediction market on Rootstock testnet.**
 
 ## 📋 Table of Contents
 
