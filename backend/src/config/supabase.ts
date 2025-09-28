@@ -120,6 +120,8 @@ export interface Database {
           avg_price_cents: number | null;
           potential_win_usd: number | null;
           potential_loss_usd: number | null;
+          transaction_hash: string | null;
+          smart_contract_position_id: string | null;
           created_at: string;
           updated_at: string;
           closed_at: string | null;
@@ -141,6 +143,8 @@ export interface Database {
           avg_price_cents?: number | null;
           potential_win_usd?: number | null;
           potential_loss_usd?: number | null;
+          transaction_hash?: string | null;
+          smart_contract_position_id?: string | null;
           created_at?: string;
           updated_at?: string;
           closed_at?: string | null;
@@ -162,6 +166,8 @@ export interface Database {
           avg_price_cents?: number | null;
           potential_win_usd?: number | null;
           potential_loss_usd?: number | null;
+          transaction_hash?: string | null;
+          smart_contract_position_id?: string | null;
           created_at?: string;
           updated_at?: string;
           closed_at?: string | null;
@@ -364,6 +370,8 @@ export interface Database {
           potential_loss_usd: number;
           status: 'live' | 'ended';
           date_label: string;
+          transaction_hash: string | null;
+          smart_contract_position_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -380,6 +388,8 @@ export interface Database {
           potential_loss_usd: number;
           status?: 'live' | 'ended';
           date_label: string;
+          transaction_hash?: string | null;
+          smart_contract_position_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -396,6 +406,8 @@ export interface Database {
           potential_loss_usd?: number;
           status?: 'live' | 'ended';
           date_label?: string;
+          transaction_hash?: string | null;
+          smart_contract_position_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -584,7 +596,7 @@ class SupabaseService {
 }
 
 // Export singleton instance
-export const supabase = SupabaseService.getInstance();
+export const supabase = SupabaseService.getInstance() as any;
 
 // Export convenience methods
 export const getSupabaseClient = () => supabase.getClient();

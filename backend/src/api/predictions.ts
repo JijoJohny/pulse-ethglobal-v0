@@ -3,6 +3,8 @@ import { body, validationResult } from 'express-validator';
 import { PositionModel } from '../models/Position';
 import { PredictionAnalyticsModel } from '../models/PredictionAnalytics';
 import { UserModel } from '../models/User';
+import { SupabaseTransactionService } from '../services/supabase-transaction-service';
+import { supabase, TABLES } from '../config/supabase';
 import { logger } from '../utils/logger';
 import { errorHandler } from '../utils/errorHandler';
 
@@ -25,7 +27,104 @@ const createPredictionValidation = [
   body('betAmountUsd').optional().isFloat({ min: 0 }).withMessage('Valid bet amount required'),
   body('potentialWinUsd').optional().isFloat({ min: 0 }).withMessage('Valid potential win required'),
   body('potentialLossUsd').optional().isFloat({ min: 0 }).withMessage('Valid potential loss required'),
+  body('transactionHash').optional().isString().withMessage('Valid transaction hash required'),
+  body('positionId').optional().isString().withMessage('Valid position ID required'),
 ];
+
+// =============================================================================
+// STORE SMART CONTRACT TRANSACTION DATA
+// =============================================================================
+
+/**
+ * @route POST /api/predictions/transaction
+ * @desc Store smart contract transaction data in Supabase
+ * @access Public
+ */
+router.post('/transaction', [
+  body('transactionHash').isString().notEmpty().withMessage('Transaction hash is required'),
+  body('positionId').isString().notEmpty().withMessage('Position ID is required'),
+  body('userAddress').isEthereumAddress().withMessage('Valid Ethereum address required'),
+  body('marketId').isString().notEmpty().withMessage('Market ID is required'),
+  body('lowerTick').isInt({ min: 0 }).withMessage('Valid lower tick required'),
+  body('upperTick').isInt({ min: 0 }).withMessage('Valid upper tick required'),
+  body('quantity').isString().notEmpty().withMessage('Quantity is required'),
+  body('costBasis').isString().notEmpty().withMessage('Cost basis is required'),
+  body('priceMin').optional().isFloat({ min: 0 }).withMessage('Valid price min required'),
+  body('priceMax').optional().isFloat({ min: 0 }).withMessage('Valid price max required'),
+  body('avgPriceCents').optional().isFloat({ min: 0 }).withMessage('Valid average price required'),
+  body('betAmountUsd').optional().isFloat({ min: 0 }).withMessage('Valid bet amount required'),
+  body('potentialWinUsd').optional().isFloat({ min: 0 }).withMessage('Valid potential win required'),
+  body('potentialLossUsd').optional().isFloat({ min: 0 }).withMessage('Valid potential loss required'),
+], async (req: Request, res: Response) => {
+  try {
+    // Check validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const {
+      transactionHash,
+      positionId,
+      userAddress,
+      marketId,
+      lowerTick,
+      upperTick,
+      quantity,
+      costBasis,
+      priceMin,
+      priceMax,
+      avgPriceCents,
+      betAmountUsd,
+      potentialWinUsd,
+      potentialLossUsd
+    } = req.body;
+
+    logger.info('Storing smart contract transaction data', {
+      transactionHash,
+      positionId,
+      userAddress,
+      marketId
+    });
+
+    // Store transaction data in Supabase
+    const result = await SupabaseTransactionService.storeTransactionData({
+      transactionHash,
+      positionId,
+      userAddress,
+      marketId,
+      lowerTick,
+      upperTick,
+      quantity,
+      costBasis,
+      priceMin,
+      priceMax,
+      avgPriceCents,
+      betAmountUsd,
+      potentialWinUsd,
+      potentialLossUsd
+    });
+
+    logger.info('Smart contract transaction data stored successfully', {
+      positionId: result.position.id,
+      transactionHash
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Transaction data stored successfully',
+      data: result
+    });
+
+  } catch (error) {
+    logger.error('Error storing smart contract transaction data:', error);
+    errorHandler(error, req, res, () => {});
+  }
+});
 
 // =============================================================================
 // CREATE PREDICTION
@@ -60,7 +159,9 @@ router.post('/', createPredictionValidation, async (req: Request, res: Response)
       avgPriceCents,
       betAmountUsd,
       potentialWinUsd,
-      potentialLossUsd
+      potentialLossUsd,
+      transactionHash,
+      positionId
     } = req.body;
 
     logger.info('Creating new prediction', {
@@ -69,15 +170,17 @@ router.post('/', createPredictionValidation, async (req: Request, res: Response)
       lowerTick,
       upperTick,
       quantity,
-      costBasis
+      costBasis,
+      transactionHash,
+      positionId
     });
 
-    // Generate unique position ID
-    const positionId = `pos_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Generate unique position ID (use smart contract position ID if available)
+    const dbPositionId = positionId || `pos_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Create position in database
     const positionData = {
-      position_id: positionId,
+      position_id: dbPositionId,
       user_address: userAddress.toLowerCase(),
       market_id: marketId,
       lower_tick: parseInt(lowerTick),
@@ -86,7 +189,9 @@ router.post('/', createPredictionValidation, async (req: Request, res: Response)
       cost_basis: costBasis,
       outcome: 'OPEN' as const,
       is_claimed: false,
-      is_active: true
+      is_active: true,
+      transaction_hash: transactionHash,
+      smart_contract_position_id: positionId
     };
 
     const position = await PositionModel.create(positionData);
@@ -97,7 +202,7 @@ router.post('/', createPredictionValidation, async (req: Request, res: Response)
       const analyticsData = {
         user_address: userAddress.toLowerCase(),
         market_id: marketId,
-        position_id: positionId,
+        position_id: dbPositionId,
         price_min: parseFloat(priceMin),
         price_max: parseFloat(priceMax),
         avg_price_cents: parseFloat(avgPriceCents),
@@ -109,7 +214,9 @@ router.post('/', createPredictionValidation, async (req: Request, res: Response)
           month: 'short',
           day: 'numeric',
           year: 'numeric'
-        })
+        }),
+        transaction_hash: transactionHash,
+        smart_contract_position_id: positionId
       };
 
       predictionAnalytics = await PredictionAnalyticsModel.create(analyticsData);
@@ -124,8 +231,10 @@ router.post('/', createPredictionValidation, async (req: Request, res: Response)
     });
 
     logger.info('Prediction created successfully', {
-      positionId,
-      userId: position.id
+      positionId: dbPositionId,
+      userId: position.id,
+      transactionHash,
+      smartContractPositionId: positionId
     });
 
     res.status(201).json({
@@ -228,6 +337,179 @@ router.get('/:id', async (req: Request, res: Response) => {
 
   } catch (error) {
     logger.error('Error getting prediction:', error);
+    errorHandler(error, req, res, () => {});
+  }
+});
+
+// =============================================================================
+// SELL POSITION ENDPOINTS
+// =============================================================================
+
+/**
+ * @route POST /api/predictions/sell
+ * @desc Record a position sell transaction
+ * @access Public
+ */
+router.post('/sell', [
+  body('transactionHash').isString().notEmpty().withMessage('Transaction hash is required'),
+  body('positionId').isString().notEmpty().withMessage('Position ID is required'),
+  body('userAddress').isEthereumAddress().withMessage('Valid Ethereum address required'),
+  body('sellType').isIn(['partial', 'complete']).withMessage('Valid sell type required'),
+  body('quantitySold').optional().isString().withMessage('Quantity sold is required for partial sells'),
+  body('proceeds').isString().notEmpty().withMessage('Proceeds amount is required'),
+  body('marketId').isString().notEmpty().withMessage('Market ID is required'),
+], async (req: Request, res: Response) => {
+  try {
+    // Check validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const {
+      transactionHash,
+      positionId,
+      userAddress,
+      sellType,
+      quantitySold,
+      proceeds,
+      marketId
+    } = req.body;
+
+    logger.info('Recording position sell transaction', {
+      transactionHash,
+      positionId,
+      userAddress,
+      sellType,
+      proceeds
+    });
+
+    // Update position status based on sell type
+    const updateData = {
+      transaction_hash: transactionHash,
+      updated_at: new Date().toISOString()
+    } as any;
+
+    if (sellType === 'complete') {
+      updateData.is_active = false;
+      updateData.closed_at = new Date().toISOString();
+      updateData.outcome = 'OPEN'; // Will be updated when market settles
+    }
+
+    // Update position in database
+    const { data: updatedPosition, error: positionError } = await supabase.getClient()
+      .from(TABLES.POSITIONS)
+      .update(updateData as any)
+      .eq('smart_contract_position_id', positionId)
+      .eq('user_address', userAddress.toLowerCase())
+      .select()
+      .single();
+
+    if (positionError || !updatedPosition) {
+      logger.error('Error updating position for sell:', positionError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update position',
+        error: positionError?.message || 'Position not found'
+      });
+    }
+
+    // Create sell transaction record
+    const sellTransactionData = {
+      trade_id: `sell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      user_address: userAddress.toLowerCase(),
+      market_id: marketId,
+      position_id: (updatedPosition as any).position_id,
+      type: sellType === 'complete' ? 'CLOSE' : 'DECREASE',
+      quantity: quantitySold || (updatedPosition as any).quantity,
+      cost: proceeds,
+      price: '0', // Will be calculated based on proceeds and quantity
+      transaction_hash: transactionHash,
+      block_number: 0, // Will be filled by blockchain monitoring
+      timestamp: new Date().toISOString()
+    };
+
+    const { data: sellTransaction, error: transactionError } = await supabase.getClient()
+      .from(TABLES.TRADES)
+      .insert(sellTransactionData as any)
+      .select()
+      .single();
+
+    if (transactionError) {
+      logger.error('Error creating sell transaction record:', transactionError);
+      // Don't fail the request, position was updated successfully
+    }
+
+    // Update user statistics
+    await UserModel.updateStats(userAddress.toLowerCase(), {
+      total_volume: proceeds, // This should be calculated properly
+    });
+
+    logger.info('Position sell recorded successfully', {
+      positionId: (updatedPosition as any).id,
+      transactionHash,
+      sellType,
+      proceeds
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Position sell recorded successfully',
+      data: {
+        position: updatedPosition,
+        sellTransaction: sellTransaction
+      }
+    });
+
+  } catch (error) {
+    logger.error('Error recording position sell:', error);
+    errorHandler(error, req, res, () => {});
+  }
+});
+
+/**
+ * @route GET /api/predictions/:id/sell-info
+ * @desc Get sell information for a position
+ * @access Public
+ */
+router.get('/:id/sell-info', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Get position details
+    const { data: position, error: positionError } = await supabase.getClient()
+      .from(TABLES.POSITIONS)
+      .select('*')
+      .eq('position_id', id)
+      .single();
+
+    if (positionError || !position) {
+      return res.status(404).json({
+        success: false,
+        message: 'Position not found'
+      });
+    }
+
+    // Get position from smart contract if available
+    let smartContractPosition = null;
+    // Note: Smart contract integration would be added here in production
+    // For now, we'll just return the database position
+
+    res.json({
+      success: true,
+      data: {
+        position,
+        smartContractPosition,
+        canSell: (position as any)?.is_active && (position as any)?.outcome === 'OPEN'
+      }
+    });
+
+  } catch (error) {
+    logger.error('Error getting sell info:', error);
     errorHandler(error, req, res, () => {});
   }
 });

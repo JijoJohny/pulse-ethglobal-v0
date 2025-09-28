@@ -21,7 +21,7 @@ export class MarketModel {
 
       const { data, error } = await supabase.getClient()
         .from(this.table)
-        .insert(marketData)
+        .insert(marketData as any)
         .select()
         .single();
 
@@ -30,7 +30,7 @@ export class MarketModel {
         throw new Error(`Failed to create market: ${error.message}`);
       }
 
-      logger.info('Market created successfully', { id: data.id });
+      logger.info('Market created successfully', { id: (data as any)?.id });
       return data;
     } catch (error) {
       logger.error('Error creating market:', error);
@@ -210,7 +210,7 @@ export class MarketModel {
         .update({
           ...updates,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', id)
         .select()
         .single();
@@ -240,7 +240,7 @@ export class MarketModel {
         .update({
           ...updates,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('market_id', marketId)
         .select()
         .single();
@@ -276,7 +276,7 @@ export class MarketModel {
           settlement_value: settlementData.settlementValue,
           settlement_tick: settlementData.settlementTick,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('market_id', marketId)
         .select()
         .single();
@@ -350,10 +350,10 @@ export class MarketModel {
 
       const stats = {
         total: data.length,
-        active: data.filter(m => m.is_active && !m.is_settled).length,
-        settled: data.filter(m => m.is_settled).length,
-        totalVolume: data.reduce((sum, m) => sum + parseFloat(m.total_volume || '0'), 0).toString(),
-        totalLiquidity: data.reduce((sum, m) => sum + parseFloat(m.total_liquidity || '0'), 0).toString()
+        active: data.filter(m => (m as any).is_active && !(m as any).is_settled).length,
+        settled: data.filter(m => (m as any).is_settled).length,
+        totalVolume: data.reduce((sum, m) => sum + parseFloat((m as any).total_volume || '0'), 0).toString(),
+        totalLiquidity: data.reduce((sum, m) => sum + parseFloat((m as any).total_liquidity || '0'), 0).toString()
       };
 
       return stats;

@@ -273,3 +273,4 @@ if (require.main === module) {
 
 export { setupSupabase, testConnection, setupRLSPolicies };
 
+

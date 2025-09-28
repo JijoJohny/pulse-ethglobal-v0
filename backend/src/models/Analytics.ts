@@ -25,7 +25,7 @@ export class AnalyticsModel {
 
       const { data, error } = await supabase.getClient()
         .from(this.marketAnalyticsTable)
-        .upsert(analyticsData, { onConflict: 'market_id,timeframe' })
+        .upsert(analyticsData as any, { onConflict: 'market_id,timeframe' })
         .select()
         .single();
 
@@ -34,7 +34,7 @@ export class AnalyticsModel {
         throw new Error(`Failed to upsert market analytics: ${error.message}`);
       }
 
-      logger.info('Market analytics upserted successfully', { id: data.id });
+      logger.info('Market analytics upserted successfully', { id: (data as any)?.id });
       return data;
     } catch (error) {
       logger.error('Error upserting market analytics:', error);
@@ -108,7 +108,7 @@ export class AnalyticsModel {
         .update({
           ...updates,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('market_id', marketId)
         .eq('timeframe', timeframe)
         .select()
@@ -140,7 +140,7 @@ export class AnalyticsModel {
 
       const { data, error } = await supabase.getClient()
         .from(this.tradesTable)
-        .insert(tradeData)
+        .insert(tradeData as any)
         .select()
         .single();
 
@@ -149,7 +149,7 @@ export class AnalyticsModel {
         throw new Error(`Failed to create trade record: ${error.message}`);
       }
 
-      logger.info('Trade record created successfully', { id: data.id });
+      logger.info('Trade record created successfully', { id: (data as any)?.id });
       return data;
     } catch (error) {
       logger.error('Error creating trade record:', error);
@@ -423,7 +423,7 @@ export class AnalyticsModel {
         .from(this.tradesTable)
         .select('cost');
 
-      const totalVolume = trades?.reduce((sum, trade) => sum + parseFloat(trade.cost), 0) || 0;
+      const totalVolume = trades?.reduce((sum, trade) => sum + parseFloat((trade as any).cost), 0) || 0;
 
       // Calculate average win rate
       const { data: positions } = await supabase.getClient()
@@ -449,4 +449,5 @@ export class AnalyticsModel {
     }
   }
 }
+
 

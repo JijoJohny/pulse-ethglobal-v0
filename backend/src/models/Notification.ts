@@ -21,7 +21,7 @@ export class NotificationModel {
 
       const { data, error } = await supabase.getClient()
         .from(this.table)
-        .insert(notificationData)
+        .insert(notificationData as any)
         .select()
         .single();
 
@@ -30,7 +30,7 @@ export class NotificationModel {
         throw new Error(`Failed to create notification: ${error.message}`);
       }
 
-      logger.info('Notification created successfully', { id: data.id });
+      logger.info('Notification created successfully', { id: (data as any)?.id });
       return data;
     } catch (error) {
       logger.error('Error creating notification:', error);
@@ -47,7 +47,7 @@ export class NotificationModel {
 
       const { data, error } = await supabase.getClient()
         .from(this.table)
-        .insert(notificationsData)
+        .insert(notificationsData as any)
         .select();
 
       if (error) {
@@ -221,7 +221,7 @@ export class NotificationModel {
         .update({
           is_read: true,
           read_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', id)
         .select()
         .single();
@@ -251,7 +251,7 @@ export class NotificationModel {
         .update({
           is_read: true,
           read_at: new Date().toISOString()
-        })
+        } as any)
         .eq('user_address', userAddress)
         .eq('is_read', false);
 
@@ -277,7 +277,7 @@ export class NotificationModel {
 
       const { data, error } = await supabase.getClient()
         .from(this.table)
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single();
@@ -484,7 +484,7 @@ export class NotificationModel {
 
       // Create notifications for all users
       const notifications = users.map(user => ({
-        user_address: user.address,
+        user_address: (user as any).address,
         type,
         title,
         message,
@@ -539,4 +539,5 @@ export class NotificationModel {
     }
   }
 }
+
 
