@@ -283,12 +283,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 4. Add tests for new functionality
 5. Submit a pull request
 
-## 📞 Support
-
-- **Documentation**: [README.md](README.md)
-- **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
-- **Discord**: [Signals Protocol Discord](https://discord.gg/signals)
-
 ---
 
 **Built with ❤️ for the Rootstock ecosystem**
