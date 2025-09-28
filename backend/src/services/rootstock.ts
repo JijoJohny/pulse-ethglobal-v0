@@ -4,9 +4,9 @@ import { MarketData, MarketAnalytics, PositionData, SettlementData } from '../ty
 
 export class RootstockService {
   private provider: ethers.Provider;
-  private wallet: ethers.Wallet;
-  private marketContract: ethers.Contract;
-  private positionContract: ethers.Contract;
+  private wallet?: ethers.Wallet;
+  private marketContract?: ethers.Contract;
+  private positionContract?: ethers.Contract;
 
   constructor() {
     // Initialize Rootstock provider
@@ -23,17 +23,34 @@ export class RootstockService {
     }
 
     // Initialize contracts (addresses will be set after deployment)
-    this.marketContract = new ethers.Contract(
-      process.env.CLMSR_MARKET_CORE_ADDRESS || '',
-      this.getMarketABI(),
-      this.wallet || this.provider
-    );
+    if (process.env.CLMSR_MARKET_CORE_ADDRESS) {
+      this.marketContract = new ethers.Contract(
+        process.env.CLMSR_MARKET_CORE_ADDRESS,
+        this.getMarketABI(),
+        this.wallet || this.provider
+      );
+    }
 
-    this.positionContract = new ethers.Contract(
-      process.env.CLMSR_POSITION_ADDRESS || '',
-      this.getPositionABI(),
-      this.wallet || this.provider
-    );
+    if (process.env.CLMSR_POSITION_ADDRESS) {
+      this.positionContract = new ethers.Contract(
+        process.env.CLMSR_POSITION_ADDRESS,
+        this.getPositionABI(),
+        this.wallet || this.provider
+      );
+    }
+  }
+
+  // =============================================================================
+  // HELPER METHODS
+  // =============================================================================
+
+  private checkContractsInitialized(): void {
+    if (!this.marketContract) {
+      throw new Error('Market contract not initialized');
+    }
+    if (!this.positionContract) {
+      throw new Error('Position contract not initialized');
+    }
   }
 
   // =============================================================================
@@ -47,7 +64,9 @@ export class RootstockService {
     try {
       logger.info('Fetching market data from Rootstock', { marketId });
 
-      const market = await this.marketContract.getMarket(marketId);
+      this.checkContractsInitialized();
+
+      const market = await this.marketContract!.getMarket(marketId);
       
       return {
         marketId: market.marketId.toString(),
@@ -79,13 +98,13 @@ export class RootstockService {
       logger.info('Fetching market analytics from Rootstock', { marketId });
 
       // Get market statistics
-      const stats = await this.marketContract.getMarketStats(marketId);
+      const stats = await this.marketContract!.getMarketStats(marketId);
       
       // Get price data
-      const priceData = await this.marketContract.getMarketPriceData(marketId);
+      const priceData = await this.marketContract!.getMarketPriceData(marketId);
       
       // Get volume data
-      const volumeData = await this.marketContract.getMarketVolumeData(marketId);
+      const volumeData = await this.marketContract!.getMarketVolumeData(marketId);
 
       return {
         marketId,
@@ -113,7 +132,7 @@ export class RootstockService {
     try {
       logger.info('Fetching position data from Rootstock', { positionId });
 
-      const position = await this.positionContract.getPosition(positionId);
+      const position = await this.positionContract!.getPosition(positionId);
       
       return {
         positionId: position.positionId.toString(),
@@ -149,7 +168,7 @@ export class RootstockService {
         throw new Error('Wallet not initialized for market settlement');
       }
 
-      const tx = await this.marketContract.settleMarket(
+      const tx = await this.marketContract!.settleMarket(
         marketId,
         settlementData.settlementTick,
         settlementData.settlementValue
@@ -187,7 +206,7 @@ export class RootstockService {
         throw new Error('Wallet not initialized for market creation');
       }
 
-      const tx = await this.marketContract.createMarket(
+      const tx = await this.marketContract!.createMarket(
         marketData.minTick,
         marketData.maxTick,
         marketData.tickSpacing,
@@ -231,7 +250,7 @@ export class RootstockService {
         throw new Error('Wallet not initialized for position opening');
       }
 
-      const tx = await this.marketContract.openPosition(
+      const tx = await this.marketContract!.openPosition(
         positionData.user,
         positionData.marketId,
         positionData.lowerTick,
@@ -271,7 +290,7 @@ export class RootstockService {
         throw new Error('Wallet not initialized for position closing');
       }
 
-      const tx = await this.marketContract.closePosition(positionId);
+      const tx = await this.marketContract!.closePosition(positionId);
       const receipt = await tx.wait();
       
       logger.info('Position closed successfully', {
@@ -304,7 +323,7 @@ export class RootstockService {
         throw new Error('Wallet not initialized for claiming rewards');
       }
 
-      const tx = await this.positionContract.claimRewards(positionId);
+      const tx = await this.positionContract!.claimRewards(positionId);
       const receipt = await tx.wait();
       
       logger.info('Position rewards claimed successfully', {

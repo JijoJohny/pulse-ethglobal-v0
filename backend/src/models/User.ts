@@ -29,9 +29,9 @@ export class UserModel {
     try {
       logger.info('Creating user in database', { userData });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.usersTable)
-        .insert(userData)
+        .insert(userData as any)
         .select()
         .single();
 
@@ -40,8 +40,12 @@ export class UserModel {
         throw new Error(`Failed to create user: ${error.message}`);
       }
 
+      if (!data) {
+        throw new Error('No data returned from user creation');
+      }
+
       logger.info('User created successfully', { id: data.id });
-      return data;
+      return data as UserRow;
     } catch (error) {
       logger.error('Error creating user:', error);
       throw error;
@@ -55,7 +59,7 @@ export class UserModel {
     try {
       logger.info('Finding user by address', { address });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.usersTable)
         .select('*')
         .eq('address', address.toLowerCase())
@@ -83,7 +87,7 @@ export class UserModel {
     try {
       logger.info('Updating user by address', { address, updates });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.usersTable)
         .update({
           ...updates,
@@ -135,7 +139,7 @@ export class UserModel {
     try {
       logger.info('Updating last login time', { address });
 
-      const { error } = await supabase.getClient()
+      const { error } = await (supabase.getClient() as any)
         .from(this.usersTable)
         .update({
           last_login_at: new Date().toISOString(),
@@ -166,15 +170,19 @@ export class UserModel {
     try {
       logger.info('Creating user profile', { profileData });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.profilesTable)
-        .insert(profileData)
+        .insert(profileData as any)
         .select()
         .single();
 
       if (error) {
         logger.error('Error creating user profile:', error);
         throw new Error(`Failed to create user profile: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('No data returned from user profile creation');
       }
 
       logger.info('User profile created successfully', { id: data.id });
@@ -192,7 +200,7 @@ export class UserModel {
     try {
       logger.info('Getting user profile', { userAddress });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.profilesTable)
         .select('*')
         .eq('user_address', userAddress.toLowerCase())
@@ -220,7 +228,7 @@ export class UserModel {
     try {
       logger.info('Updating user profile', { userAddress, updates });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.profilesTable)
         .update({
           ...updates,
@@ -276,15 +284,19 @@ export class UserModel {
     try {
       logger.info('Creating user statistics', { statsData });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.statsTable)
-        .insert(statsData)
+        .insert(statsData as any)
         .select()
         .single();
 
       if (error) {
         logger.error('Error creating user statistics:', error);
         throw new Error(`Failed to create user statistics: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('No data returned from user statistics creation');
       }
 
       logger.info('User statistics created successfully', { id: data.id });
@@ -302,7 +314,7 @@ export class UserModel {
     try {
       logger.info('Getting user statistics', { userAddress });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.statsTable)
         .select('*')
         .eq('user_address', userAddress.toLowerCase())
@@ -330,7 +342,7 @@ export class UserModel {
     try {
       logger.info('Updating user statistics', { userAddress, updates });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.statsTable)
         .update({
           ...updates,
@@ -405,7 +417,7 @@ export class UserModel {
 
       logger.info('Getting user leaderboard', { options });
 
-      const { data, error, count } = await supabase.getClient()
+      const { data, error, count } = await (supabase.getClient() as any)
         .from(this.statsTable)
         .select('*', { count: 'exact' })
         .order(sortBy, { ascending: sortOrder === 'asc' })
@@ -433,7 +445,7 @@ export class UserModel {
     try {
       logger.info('Getting user rank', { userAddress, sortBy });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.statsTable)
         .select('user_address')
         .order(sortBy, { ascending: false });
@@ -491,10 +503,10 @@ export class UserModel {
 
       const platformStats = {
         totalUsers: users.length,
-        activeUsers: users.filter(u => u.is_active).length,
-        verifiedUsers: users.filter(u => u.is_verified).length,
-        totalVolume: stats.reduce((sum, s) => sum + parseFloat(s.total_volume || '0'), 0).toString(),
-        totalPnL: stats.reduce((sum, s) => sum + parseFloat(s.total_pnl || '0'), 0).toString()
+        activeUsers: (users as any[]).filter(u => u.is_active).length,
+        verifiedUsers: (users as any[]).filter(u => u.is_verified).length,
+        totalVolume: (stats as any[]).reduce((sum, s) => sum + parseFloat(s.total_volume || '0'), 0).toString(),
+        totalPnL: (stats as any[]).reduce((sum, s) => sum + parseFloat(s.total_pnl || '0'), 0).toString()
       };
 
       return platformStats;
@@ -516,7 +528,7 @@ export class UserModel {
 
       logger.info('Searching users', { searchTerm, options });
 
-      const { data, error, count } = await supabase.getClient()
+      const { data, error, count } = await (supabase.getClient() as any)
         .from(this.usersTable)
         .select('*', { count: 'exact' })
         .or(`address.ilike.%${searchTerm}%,username.ilike.%${searchTerm}%`)

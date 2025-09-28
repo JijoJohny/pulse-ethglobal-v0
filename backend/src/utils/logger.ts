@@ -22,7 +22,7 @@ const colors = {
 winston.addColors(colors);
 
 // Define which transports the logger must use to print out messages
-const transports = [
+const transports: winston.transport[] = [
   // Console transport
   new winston.transports.Console({
     format: winston.format.combine(
@@ -45,14 +45,14 @@ if (process.env.NODE_ENV === 'production') {
         winston.format.timestamp(),
         winston.format.json()
       ),
-    }),
+    }) as winston.transport,
     new winston.transports.File({
       filename: 'logs/combined.log',
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.json()
       ),
-    })
+    }) as winston.transport
   );
 }
 

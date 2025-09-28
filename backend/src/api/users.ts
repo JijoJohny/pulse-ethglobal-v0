@@ -219,8 +219,8 @@ router.get('/:address/portfolio', async (req: Request, res: Response) => {
         winningPositions: stats.winningPositions,
         losingPositions: stats.losingPositions,
         averagePositionSize: stats.averagePositionSize,
-        bestPerformingMarket: this.findBestPerformingMarket(positions),
-        worstPerformingMarket: this.findWorstPerformingMarket(positions)
+        bestPerformingMarket: findBestPerformingMarket(positions || []),
+        worstPerformingMarket: findWorstPerformingMarket(positions || [])
       },
       timeline: {
         firstPositionAt: stats.firstPositionAt,
@@ -309,6 +309,10 @@ router.get('/:address/leaderboard', async (req: Request, res: Response) => {
  * Find best performing market for user
  */
 function findBestPerformingMarket(positions: any[]): any {
+  if (!positions || positions.length === 0) {
+    return null;
+  }
+  
   const marketPerformance = positions.reduce((acc: any, pos: any) => {
     if (!acc[pos.market]) {
       acc[pos.market] = { wins: 0, losses: 0, totalPnL: 0 };
@@ -342,6 +346,10 @@ function findBestPerformingMarket(positions: any[]): any {
  * Find worst performing market for user
  */
 function findWorstPerformingMarket(positions: any[]): any {
+  if (!positions || positions.length === 0) {
+    return null;
+  }
+  
   const marketPerformance = positions.reduce((acc: any, pos: any) => {
     if (!acc[pos.market]) {
       acc[pos.market] = { wins: 0, losses: 0, totalPnL: 0 };

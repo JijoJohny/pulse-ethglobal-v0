@@ -69,8 +69,8 @@ CREATE TABLE IF NOT EXISTS positions (
     CONSTRAINT valid_user_address CHECK (user_address ~ '^0x[a-fA-F0-9]{40}$'),
     CONSTRAINT valid_market_id CHECK (market_id != ''),
     CONSTRAINT valid_tick_range CHECK (lower_tick < upper_tick),
-    CONSTRAINT valid_quantity CHECK (quantity::DECIMAL > 0),
-    CONSTRAINT valid_cost_basis CHECK (cost_basis::DECIMAL >= 0),
+    CONSTRAINT valid_quantity CHECK (CAST(quantity AS DECIMAL) > 0),
+    CONSTRAINT valid_cost_basis CHECK (CAST(cost_basis AS DECIMAL) >= 0),
     CONSTRAINT valid_avg_price CHECK (avg_price_cents IS NULL OR avg_price_cents > 0),
     CONSTRAINT valid_potential_win CHECK (potential_win_usd IS NULL OR potential_win_usd >= 0),
     CONSTRAINT valid_potential_loss CHECK (potential_loss_usd IS NULL OR potential_loss_usd >= 0),
@@ -146,9 +146,9 @@ CREATE TABLE IF NOT EXISTS user_stats (
     CONSTRAINT valid_winning CHECK (winning_positions >= 0),
     CONSTRAINT valid_losing CHECK (losing_positions >= 0),
     CONSTRAINT valid_win_rate CHECK (win_rate >= 0 AND win_rate <= 100),
-    CONSTRAINT valid_volume CHECK (total_volume::DECIMAL >= 0),
-    CONSTRAINT valid_pnl CHECK (total_pnl::DECIMAL IS NOT NULL),
-    CONSTRAINT valid_position_size CHECK (average_position_size::DECIMAL >= 0)
+    CONSTRAINT valid_volume CHECK (CAST(total_volume AS DECIMAL) >= 0),
+    CONSTRAINT valid_pnl CHECK (CAST(total_pnl AS DECIMAL) IS NOT NULL),
+    CONSTRAINT valid_position_size CHECK (CAST(average_position_size AS DECIMAL) >= 0)
 );
 
 -- =============================================================================
@@ -179,12 +179,12 @@ CREATE TABLE IF NOT EXISTS market_analytics (
     CONSTRAINT valid_trades CHECK (total_trades >= 0),
     CONSTRAINT valid_users CHECK (unique_users >= 0),
     CONSTRAINT valid_win_rate CHECK (win_rate >= 0 AND win_rate <= 100),
-    CONSTRAINT valid_volume CHECK (total_volume::DECIMAL >= 0),
-    CONSTRAINT valid_liquidity CHECK (total_liquidity::DECIMAL >= 0),
+    CONSTRAINT valid_volume CHECK (CAST(total_volume AS DECIMAL) >= 0),
+    CONSTRAINT valid_liquidity CHECK (CAST(total_liquidity AS DECIMAL) >= 0),
     CONSTRAINT valid_prices CHECK (
-        average_price::DECIMAL >= 0 AND
-        highest_price::DECIMAL >= 0 AND
-        lowest_price::DECIMAL >= 0
+        CAST(average_price AS DECIMAL) >= 0 AND
+        CAST(highest_price AS DECIMAL) >= 0 AND
+        CAST(lowest_price AS DECIMAL) >= 0
     ),
     UNIQUE(market_id, timeframe)
 );
@@ -211,9 +211,9 @@ CREATE TABLE IF NOT EXISTS trades (
     CONSTRAINT valid_user_address CHECK (user_address ~ '^0x[a-fA-F0-9]{40}$'),
     CONSTRAINT valid_market_id CHECK (market_id != ''),
     CONSTRAINT valid_position_id CHECK (position_id != ''),
-    CONSTRAINT valid_quantity CHECK (quantity::DECIMAL > 0),
-    CONSTRAINT valid_cost CHECK (cost::DECIMAL >= 0),
-    CONSTRAINT valid_price CHECK (price::DECIMAL >= 0),
+    CONSTRAINT valid_quantity CHECK (CAST(quantity AS DECIMAL) > 0),
+    CONSTRAINT valid_cost CHECK (CAST(cost AS DECIMAL) >= 0),
+    CONSTRAINT valid_price CHECK (CAST(price AS DECIMAL) >= 0),
     CONSTRAINT valid_tx_hash CHECK (transaction_hash ~ '^0x[a-fA-F0-9]{64}$'),
     CONSTRAINT valid_block_number CHECK (block_number > 0)
 );
@@ -353,9 +353,9 @@ CREATE INDEX IF NOT EXISTS idx_user_profiles_user_address ON user_profiles(user_
 
 -- User stats indexes
 CREATE INDEX IF NOT EXISTS idx_user_stats_user_address ON user_stats(user_address);
-CREATE INDEX IF NOT EXISTS idx_user_stats_total_pnl ON user_stats(total_pnl::DECIMAL);
+CREATE INDEX IF NOT EXISTS idx_user_stats_total_pnl ON user_stats(total_pnl);
 CREATE INDEX IF NOT EXISTS idx_user_stats_win_rate ON user_stats(win_rate);
-CREATE INDEX IF NOT EXISTS idx_user_stats_total_volume ON user_stats(total_volume::DECIMAL);
+CREATE INDEX IF NOT EXISTS idx_user_stats_total_volume ON user_stats(total_volume);
 
 -- Market analytics indexes
 CREATE INDEX IF NOT EXISTS idx_market_analytics_market_id ON market_analytics(market_id);
@@ -489,10 +489,10 @@ BEGIN
         COUNT(*) FILTER (WHERE outcome = 'OPEN') as open_positions,
         COUNT(*) FILTER (WHERE outcome = 'WIN') as won_positions,
         COUNT(*) FILTER (WHERE outcome = 'LOSS') as lost_positions,
-        COALESCE(SUM(cost_basis::DECIMAL), 0) as total_volume,
+        COALESCE(SUM(CAST(cost_basis AS DECIMAL)), 0) as total_volume,
         COALESCE(SUM(CASE 
-            WHEN outcome = 'WIN' THEN quantity::DECIMAL - cost_basis::DECIMAL
-            WHEN outcome = 'LOSS' THEN -cost_basis::DECIMAL
+            WHEN outcome = 'WIN' THEN CAST(quantity AS DECIMAL) - CAST(cost_basis AS DECIMAL)
+            WHEN outcome = 'LOSS' THEN -CAST(cost_basis AS DECIMAL)
             ELSE 0
         END), 0) as total_pnl,
         CASE 
@@ -567,7 +567,7 @@ BEGIN
     -- Calculate potential win/loss (simplified calculation)
     -- In a real implementation, this would use the CLMSR formula
     DECLARE
-        bet_amount DECIMAL := NEW.cost_basis::DECIMAL;
+        bet_amount DECIMAL := CAST(NEW.cost_basis AS DECIMAL);
         avg_price DECIMAL := NEW.avg_price_cents;
         odds DECIMAL := GREATEST(0.5, 100.0 / GREATEST(1, avg_price));
     BEGIN

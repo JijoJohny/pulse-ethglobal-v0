@@ -1,5 +1,9 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 import { logger } from '../utils/logger';
+
+// Load environment variables first
+dotenv.config();
 
 // Supabase configuration interface
 export interface SupabaseConfig {
@@ -16,6 +20,7 @@ export const TABLES = {
   USER_PROFILES: 'user_profiles',
   USER_STATS: 'user_stats',
   MARKET_ANALYTICS: 'market_analytics',
+  PREDICTION_ANALYTICS: 'prediction_analytics',
   PLATFORM_ANALYTICS: 'platform_analytics',
   TRADES: 'trades',
   NOTIFICATIONS: 'notifications',
@@ -111,6 +116,10 @@ export interface Database {
           outcome: 'OPEN' | 'WIN' | 'LOSS';
           is_claimed: boolean;
           is_active: boolean;
+          date_label: string | null;
+          avg_price_cents: number | null;
+          potential_win_usd: number | null;
+          potential_loss_usd: number | null;
           created_at: string;
           updated_at: string;
           closed_at: string | null;
@@ -128,6 +137,10 @@ export interface Database {
           outcome?: 'OPEN' | 'WIN' | 'LOSS';
           is_claimed?: boolean;
           is_active?: boolean;
+          date_label?: string | null;
+          avg_price_cents?: number | null;
+          potential_win_usd?: number | null;
+          potential_loss_usd?: number | null;
           created_at?: string;
           updated_at?: string;
           closed_at?: string | null;
@@ -145,6 +158,10 @@ export interface Database {
           outcome?: 'OPEN' | 'WIN' | 'LOSS';
           is_claimed?: boolean;
           is_active?: boolean;
+          date_label?: string | null;
+          avg_price_cents?: number | null;
+          potential_win_usd?: number | null;
+          potential_loss_usd?: number | null;
           created_at?: string;
           updated_at?: string;
           closed_at?: string | null;
@@ -329,6 +346,56 @@ export interface Database {
           volume_30d?: string;
           unique_users?: number;
           win_rate?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      prediction_analytics: {
+        Row: {
+          id: string;
+          user_address: string;
+          market_id: string;
+          position_id: string;
+          price_min: number;
+          price_max: number;
+          avg_price_cents: number;
+          bet_amount_usd: number;
+          potential_win_usd: number;
+          potential_loss_usd: number;
+          status: 'live' | 'ended';
+          date_label: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_address: string;
+          market_id: string;
+          position_id: string;
+          price_min: number;
+          price_max: number;
+          avg_price_cents: number;
+          bet_amount_usd: number;
+          potential_win_usd: number;
+          potential_loss_usd: number;
+          status?: 'live' | 'ended';
+          date_label: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_address?: string;
+          market_id?: string;
+          position_id?: string;
+          price_min?: number;
+          price_max?: number;
+          avg_price_cents?: number;
+          bet_amount_usd?: number;
+          potential_win_usd?: number;
+          potential_loss_usd?: number;
+          status?: 'live' | 'ended';
+          date_label?: string;
           created_at?: string;
           updated_at?: string;
         };

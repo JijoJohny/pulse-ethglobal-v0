@@ -12,6 +12,7 @@ import marketRoutes from './api/markets';
 import positionRoutes from './api/positions';
 import userRoutes from './api/users';
 import analyticsRoutes from './api/analytics';
+import predictionRoutes from './api/predictions';
 
 // Import services
 import { RootstockService } from './services/rootstock';
@@ -96,6 +97,7 @@ app.use('/api/markets', marketRoutes);
 app.use('/api/positions', positionRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/predictions', predictionRoutes);
 
 // =============================================================================
 // WEBSOCKET CONFIGURATION

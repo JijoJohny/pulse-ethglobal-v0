@@ -19,9 +19,9 @@ export class PositionModel {
     try {
       logger.info('Creating position in database', { positionData });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.table)
-        .insert(positionData)
+        .insert(positionData as any)
         .select()
         .single();
 
@@ -30,8 +30,12 @@ export class PositionModel {
         throw new Error(`Failed to create position: ${error.message}`);
       }
 
+      if (!data) {
+        throw new Error('No data returned from position creation');
+      }
+
       logger.info('Position created successfully', { id: data.id });
-      return data;
+      return data as PositionRow;
     } catch (error) {
       logger.error('Error creating position:', error);
       throw error;
@@ -266,7 +270,7 @@ export class PositionModel {
     try {
       logger.info('Updating position by ID', { id, updates });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.table)
         .update({
           ...updates,
@@ -296,7 +300,7 @@ export class PositionModel {
     try {
       logger.info('Updating position by position ID', { positionId, updates });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.table)
         .update({
           ...updates,
@@ -326,7 +330,7 @@ export class PositionModel {
     try {
       logger.info('Closing position', { positionId, outcome });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.table)
         .update({
           outcome,
@@ -358,7 +362,7 @@ export class PositionModel {
     try {
       logger.info('Claiming position rewards', { positionId });
 
-      const { data, error } = await supabase.getClient()
+      const { data, error } = await (supabase.getClient() as any)
         .from(this.table)
         .update({
           is_claimed: true,
@@ -441,9 +445,9 @@ export class PositionModel {
 
       const stats = {
         total: data.length,
-        open: data.filter(p => p.outcome === 'OPEN').length,
-        won: data.filter(p => p.outcome === 'WIN').length,
-        lost: data.filter(p => p.outcome === 'LOSS').length,
+        open: (data as any[]).filter(p => p.outcome === 'OPEN').length,
+        won: (data as any[]).filter(p => p.outcome === 'WIN').length,
+        lost: (data as any[]).filter(p => p.outcome === 'LOSS').length,
         totalVolume: '0',
         totalPnL: '0',
         winRate: 0
@@ -454,7 +458,7 @@ export class PositionModel {
       let totalPnL = 0;
       let settledCount = 0;
 
-      data.forEach(position => {
+      (data as any[]).forEach(position => {
         const quantity = parseFloat(position.quantity || '0');
         const costBasis = parseFloat(position.cost_basis || '0');
         
@@ -507,9 +511,9 @@ export class PositionModel {
 
       const stats = {
         total: data.length,
-        open: data.filter(p => p.outcome === 'OPEN').length,
-        won: data.filter(p => p.outcome === 'WIN').length,
-        lost: data.filter(p => p.outcome === 'LOSS').length,
+        open: (data as any[]).filter(p => p.outcome === 'OPEN').length,
+        won: (data as any[]).filter(p => p.outcome === 'WIN').length,
+        lost: (data as any[]).filter(p => p.outcome === 'LOSS').length,
         totalVolume: '0',
         totalLiquidity: '0',
         uniqueUsers: 0
@@ -520,7 +524,7 @@ export class PositionModel {
       let totalLiquidity = 0;
       const uniqueUsers = new Set<string>();
 
-      data.forEach(position => {
+      (data as any[]).forEach(position => {
         const quantity = parseFloat(position.quantity || '0');
         const costBasis = parseFloat(position.cost_basis || '0');
         
