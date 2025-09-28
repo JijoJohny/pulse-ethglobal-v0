@@ -1,4 +1,4 @@
-# 🚀 CLMSR Prediction Market Contracts for Rootstock
+#  CLMSR Price Forcasting  on  Rootstock
 
 [![Hardhat](https://img.shields.io/badge/Hardhat-2.19.0-yellow)](https://hardhat.org/)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.19-blue)](https://soliditylang.org/)
